@@ -31,6 +31,8 @@ So this is your current code:
 
 you could do something like that:
 
+    from ext_fields import ExFieldsDecorator
+
     @ExFieldsDecorator
     class Client(models.Model):
         #this we're going to keep, we need this to be FAST

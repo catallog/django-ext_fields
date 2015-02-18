@@ -1,0 +1,1 @@
+from ext_fields import ExFieldsDecorator
