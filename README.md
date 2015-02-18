@@ -16,7 +16,7 @@ And you want to do it completely dynamically, so you don't need to worry anymore
 
 To make things easy we created a decorator that you put in your django models
 to allow them have any additional arbitrary fields using a simple EAV approach.
-I is simple, fast, and you don't need to worry about it. I is NOT the final ultimate
+It is simple, fast, and you don't need to worry about it. It is NOT the final ultimate
 solution for the problem, but a really handy one, that can be used in virtually
 any existing project.
 
@@ -100,7 +100,7 @@ or a custom made SQL.
 
 ## I have some awesome idea, can I help?
 
-Of couse! That's why it is on github, feel free to make forks and pool requests!
+Of couse! That's why it is on github, feel free to make forks and poll requests!
 
 ## I don't have any idea, but I want to help you...
 
