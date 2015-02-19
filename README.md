@@ -100,7 +100,7 @@ or a custom made SQL.
 
 ## I have some awesome idea, can I help?
 
-Of couse! That's why it is on github, feel free to make forks and poll requests!
+Of couse! That's why it is on github, feel free to make forks and pull requests!
 
 ## I don't have any idea, but I want to help you...
 
