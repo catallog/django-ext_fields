@@ -171,6 +171,28 @@ class _InternalExFieldsManager:
             queryset = self._get_new_queryset()
         return queryset.exclude(self._get_filtering(argv))
 
+    ## \plublic
+    # \return a list o unique fields
+    def distinct_fields(self):
+
+        ret = list()
+
+        queryset = self._get_new_queryset()
+
+        for tname in self._fields_tables.keys():
+
+            fields = queryset.values( (tname+'__field').lower() ).distinct()
+
+            for entry in fields:
+
+                for value in entry.values():
+
+                    if value is not None and value not in ret:
+
+                        ret.append(value)
+
+        return ret
+
 #  _____      _   _____ _ _     _ __  __
 # | ____|_  _| |_|  ___(_) | __| |  \/  | __ _ _ __
 # |  _| \ \/ / __| |_  | | |/ _` | |\/| |/ _` | '__|
