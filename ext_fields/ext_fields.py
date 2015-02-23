@@ -70,8 +70,8 @@ def create_ex_fields_parent(cls):
         Parent class for the hidden tables containing the extended
         fields in EAV formatt.
         """
-        fk = models.ForeignKey(cls)
-        field = models.CharField(max_length=128)
+        fk = models.ForeignKey(cls, null=False)
+        field = models.CharField(max_length=128, null=False)
 
         class Meta:
             abstract = True
@@ -117,6 +117,7 @@ class _InternalExFieldsManager:
         self.__ex_fields_class = fields_models
 
     ## \protected
+    # \return a new queryset
     def _get_new_queryset(self):
         """
         creates a new queryset
@@ -125,22 +126,66 @@ class _InternalExFieldsManager:
 
     ## \protected
     # \param[in] argv the arguments dict to process and build query filters.
-    # \throws ExFieldUnableSaveFieldType 'Cannot select based on given type!'.
+    # \throws ExFieldUnableSaveFieldType 'Cannot select based on given type!'
+    # \return a model.Q for a given filter options.
     def _get_filtering(self, argv):
         """
         Contruct filtering options based on argv in a similar way of django.
         """
+        qoptions = (
+            'exact',
+            'iexact',
+            'contains',
+            'icontains',
+            'in',
+            'gt',
+            'gte',
+            'lt',
+            'lte',
+            'startswith',
+            'istartswith',
+            'endswith',
+            'iendswith',
+            'range',
+            'year',
+            'month',
+            'day',
+            'week_day',
+            'hour',
+            'minute',
+            'second',
+            'isnull',
+            'search',
+            'regex',
+            'iregex',
+            'have',
+        )
+
         p = None
         for fname, fopt in argv.items():
             q = None
 
-            for tname, ttype in self._fields_tables.items():
-                if type(fopt) is ttype[0]:
-                    q = models.Q(((tname+'__value').lower(), fopt,)) \
-                        & models.Q(((tname+'__field').lower(), fname))
-                    break
+            opt = 'exact'
+            opts_path = fname.split('__')[-1]
+            if opts_path in qoptions:
+                opt = opts_path
+                fname = fname[:len(fname)-len(opt)-2]
+
+            if opt == 'have':
+                for tname, ttype in self._fields_tables.items():
+                    x = models.Q(((tname+'__field').lower(), fname,))
+                    if fopt:
+                        q = (q | x) if q else x
+                    else:
+                        q = (q & (~x)) if q else ~x
             else:
-                raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
+                for tname, ttype in self._fields_tables.items():
+                    if type(fopt) is ttype[0]:
+                        q = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
+                            & models.Q(((tname+'__field').lower(), fname,))
+                        break
+                else:
+                    raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
 
             if not p:
                 p = q
@@ -151,6 +196,7 @@ class _InternalExFieldsManager:
 
     ## \public
     # \param[in] queryset The queryset for a given query.
+    # \return a django queryset
     def filter(self, queryset=None, **argv):
         """
         Analog to django.models.Model.objects.filter(), but it dont accept
@@ -158,10 +204,11 @@ class _InternalExFieldsManager:
         """
         if not queryset:
             queryset = self._get_new_queryset()
-        return queryset.filter(self._get_filtering(argv))
+        return queryset.filter(self._get_filtering(argv)).distinct()
 
     ## \public
     # \param[in] queryset The queryset for a given query.
+    # \return a django queryset
     def exclude(self, queryset=None, **argv):
         """
         Analog to django.models.Model.objects.exclude(), but it dont accept
@@ -169,27 +216,24 @@ class _InternalExFieldsManager:
         """
         if not queryset:
             queryset = self._get_new_queryset()
-        return queryset.exclude(self._get_filtering(argv))
+        return queryset.exclude(self._get_filtering(argv)).distinct()
 
-    ## \plublic
-    # \return a list o unique fields
+    # ## \plublic
+    # # \return a list o unique fields
     def distinct_fields(self):
-
+        """
+        Get a list with all ext_fields that are linked with a given model
+        """
         ret = list()
 
         queryset = self._get_new_queryset()
+        columns = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
+        fields = queryset.values(*columns).distinct()
 
-        for tname in self._fields_tables.keys():
-
-            fields = queryset.values( (tname+'__field').lower() ).distinct()
-
-            for entry in fields:
-
-                for value in entry.values():
-
-                    if value is not None and value not in ret:
-
-                        ret.append(value)
+        for entry in fields:
+            for value in entry.values():
+                if value is not None and value not in ret:
+                    ret.append(value)
 
         return ret
 

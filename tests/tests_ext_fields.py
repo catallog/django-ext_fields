@@ -12,9 +12,9 @@ class SimpleModel(models.Model):
 
 class ExtFieldTestCase(TestCase):
     def setUp(self):
-        SimpleModel.objects.create(email='lala@lele.com').ext_fields = {'asdf': 'fdsa', 'kkk': 10}
-        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11}
-        SimpleModel.objects.create(email='lolo@lele.com').ext_fields = {'asdf': 'dfgh', 'kkk': 12}
+        SimpleModel.objects.create(email='lala@lele.com').ext_fields = {'asdf': 'fdsa', 'kkk': 10, 'hhh': 3, 'lll': '=)'}
+        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4}
+        SimpleModel.objects.create(email='lolo@lele.com').ext_fields = {'asdf': 'dfgh', 'kkk': 12, 'lll': '=)'}
 
     def test_can_get_after_save(self):
         """Check if load is ok"""
@@ -38,6 +38,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(k['kkk'], 12)
 
     def test_correctly_updates(self):
+        """check if fields will be correctly updated"""
         k10 = SimpleModel.ext_fields_manager.filter(kkk=10)[0]
         k11 = SimpleModel.ext_fields_manager.filter(kkk=11)[0]
         k12 = SimpleModel.ext_fields_manager.filter(kkk=12)[0]
@@ -86,6 +87,56 @@ class ExtFieldTestCase(TestCase):
             kkk=12
         ).values('email')
         self.assertEqual(len(k), 0)
+
+    def test_distinct_fields(self):
+        """check if can get name of distinct fields correctly"""
+        dfields = SimpleModel.ext_fields_manager.distinct_fields()
+
+        self.assertEqual(len(dfields), 4)
+        self.assertEqual('asdf' in dfields, True)
+        self.assertEqual('hhh' in dfields, True)
+        self.assertEqual('lll' in dfields, True)
+        self.assertEqual('kkk' in dfields, True)
+
+    def test_have_opt(self):
+        """check if will correctly return the have filter"""
+        k = SimpleModel.ext_fields_manager.filter(asdf__have=True)#.values('email')
+        self.assertEqual(len(k), 3)
+
+        k = SimpleModel.ext_fields_manager.filter(asdf__have=False).values('email')
+        self.assertEqual(len(k), 0)
+
+        k = SimpleModel.ext_fields_manager.filter(hhh__have=True).values('email')
+        self.assertEqual(len(k), 2)
+
+        k = SimpleModel.ext_fields_manager.filter(hhh__have=False).values('email')
+        self.assertEqual(len(k), 1)
+
+        k = SimpleModel.ext_fields_manager.filter(lll__have=True).values('email')
+        self.assertEqual(len(k), 2)
+
+        k = SimpleModel.ext_fields_manager.filter(lll__have=False).values('email')
+        self.assertEqual(len(k), 1)
+
+    def test_extended_opt(self):
+        """check if especial options will work"""
+        k = SimpleModel.ext_fields_manager.filter(asdf__exact='fdsa').values('email')
+        self.assertEqual(len(k), 1)
+        self.assertEqual('email' in k[0], True)
+        self.assertEqual(k[0]['email'], 'lala@lele.com')
+
+        k = SimpleModel.ext_fields_manager.filter(asdf__startswith='df').values('email')
+        self.assertEqual(len(k), 1)
+        self.assertEqual('email' in k[0], True)
+        self.assertEqual(k[0]['email'], 'lolo@lele.com')
+
+        k = SimpleModel.ext_fields_manager.filter(asdf__endswith='gh').values('email')
+        self.assertEqual(len(k), 1)
+        self.assertEqual('email' in k[0], True)
+        self.assertEqual(k[0]['email'], 'lolo@lele.com')
+
+        k = SimpleModel.ext_fields_manager.filter(kkk__gte=11).values('email')
+        self.assertEqual(len(k), 2)
 
     def test_deletes(self):
         """check if it is able to delete fields on tables"""
