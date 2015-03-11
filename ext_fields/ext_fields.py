@@ -416,7 +416,7 @@ def ExFieldsDecorator(cls):
     """
 
     defaults_common = {'__module__': cls.__module__}
-    defaults_common['Meta'] = cls.Meta if 'Meta' in cls.__dict__ else EmptyMeta
+    defaults_common['Meta'] = cls.Meta if hasattr(cls, 'Meta') else EmptyMeta
 
     name_base = cls.__name__ + 'ExtendedFields'
     fields_tables = {
