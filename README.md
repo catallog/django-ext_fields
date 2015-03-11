@@ -24,8 +24,8 @@ any existing project.
 So this is your current code:
 
     class Client(models.Model):
-        name = models.CharField('null'=False, 'max_length'=150)
-        email = models.CharField('null'=False, 'max_length'=100)
+        name = models.CharField(null=False, max_length=150)
+        email = models.CharField(null=False, max_length=100)
 
         account = models.ForeignKey(MyAccount)
 
@@ -36,7 +36,7 @@ you could do something like that:
     @ExFieldsDecorator
     class Client(models.Model):
         #this we're going to keep, we need this to be FAST
-        name = models.CharField('null'=False, 'mas_length'=150)
+        name = models.CharField(null=False, max_length=150)
 
         account = models.ForeignKey(MyAccount)
 
