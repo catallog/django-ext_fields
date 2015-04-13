@@ -220,13 +220,15 @@ class _InternalExFieldsManager:
 
     # ## \plublic
     # # \return a list o unique fields
-    def distinct_fields(self):
+    def distinct_fields(self, queryset=None):
         """
         Get a list with all ext_fields that are linked with a given model
         """
         ret = list()
 
-        queryset = self._get_new_queryset()
+        if not queryset:
+            queryset = self._get_new_queryset()
+            
         columns = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
         fields = queryset.values(*columns).distinct()
 
