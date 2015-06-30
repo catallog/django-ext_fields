@@ -320,17 +320,17 @@ class _ExFieldsDescriptors(object):
             fields = queryset.values(*columns).distinct()
 
             for row in fields:
-                field = None
-                value = None
+                vl = {}
                 for k, v in row.items():
                     if v != None:
-                        if k[-5:] == 'field':
-                            field = v
-                        if k[-5:] == 'value':
-                            value = v
-                    if field != None and value != None:
-                        instance.__extendedFieldsCache[field] = value
-                        break
+                        ftname = k[:-5]
+                        ttname = k[-5:]
+
+                        vl[ftname] = vl[ftname] if ftname in vl else {}
+                        vl[ftname][ttname] = v
+
+                for k, v in vl.items():
+                    instance.__extendedFieldsCache[v['field']] = v['value']
 
         return instance.__extendedFieldsCache
 
