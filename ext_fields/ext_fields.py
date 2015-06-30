@@ -228,7 +228,7 @@ class _InternalExFieldsManager:
 
         if not queryset:
             queryset = self._get_new_queryset()
-            
+
         columns = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
         fields = queryset.values(*columns).distinct()
 
@@ -297,6 +297,14 @@ class _ExFieldsDescriptors(object):
         self._fields_tables = fields_tables
         self.__ex_fields_class = fields_models
 
+    ## \protected
+    # \return a new queryset
+    def _get_new_queryset(self, owner, instance):
+        """
+        creates a new queryset
+        """
+        return owner.objects.filter(pk=instance.pk)
+
     ## \public
     def __get__(self, instance, owner):
         """
@@ -305,9 +313,24 @@ class _ExFieldsDescriptors(object):
         if '__extendedFieldsCache' not in instance.__dict__:
             instance.__extendedFieldsCache = dict()
 
-            for tname, tmodel in self.__ex_fields_class.items():
-                for el in tmodel.objects.filter(fk=instance).values('value', 'field'):
-                    instance.__extendedFieldsCache[el['field']] = el['value']
+            queryset = self._get_new_queryset(owner, instance)
+            columns_fields = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
+            columns_values = map(lambda x: (x+'__value').lower(), self._fields_tables.keys())
+            columns = columns_fields + columns_values
+            fields = queryset.values(*columns).distinct()
+
+            for row in fields:
+                field = None
+                value = None
+                for k, v in row.items():
+                    if v != None:
+                        if k[-5:] == 'field':
+                            field = v
+                        if k[-5:] == 'value':
+                            value = v
+                    if field != None and value != None:
+                        instance.__extendedFieldsCache[field] = value
+                        break
 
         return instance.__extendedFieldsCache
 
