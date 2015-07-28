@@ -429,6 +429,18 @@ class _ExFieldsDescriptors(object):
             del instance.__dict__.__extendedFieldsCache
 
 ## \public
+#  \note helper method to encode ext fields in dict format
+#  \param[in] override Should ext override django models fields
+def as_dict(self, override=False):
+    def __get_ext_fields_dicts__(ovr):
+        if ovr:
+            return self.__dict__, self.ext_fields
+        return self.ext_fields, self.__dict__
+    base, ext = __get_ext_fields_dicts__(override)
+    base.update(ext)
+    return base
+
+## \public
 #  \note This is the main decorator, you should use like this:
 # @ExFieldsDecorator
 # class MyModel(models.Model):
@@ -459,5 +471,6 @@ def ExFieldsDecorator(cls):
     cls.ext_fields = _ExFieldsDescriptors(fields_tables, fields_models)
     cls.ext_fields_manager = _ExFieldsManager(fields_tables, fields_models)
     cls.__ex_fields_class = fields_models
+    setattr(cls, 'as_dict', as_dict )
 
     return cls
