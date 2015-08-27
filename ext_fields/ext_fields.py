@@ -433,9 +433,10 @@ class _ExFieldsDescriptors(object):
 #  \param[in] override Should ext override django models fields
 def as_dict(self, override=False):
     def __get_ext_fields_dicts__(ovr):
+        model_fields = { k:v for k,v in self.__dict__.items() if not k.startswith('_') }
         if ovr:
-            return self.__dict__, self.ext_fields
-        return self.ext_fields, self.__dict__
+            return model_fields, self.ext_fields
+        return self.ext_fields, model_fields
     base, ext = __get_ext_fields_dicts__(override)
     base.update(ext)
     return base
