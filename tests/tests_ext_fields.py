@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from django.db import models
 from ext_fields import *
-
-@ExFieldsDecorator
-class SimpleModel(models.Model):
-    email = models.CharField(max_length=256)
+from .models import SimpleModel
 
 class ExtFieldTestCase(TestCase):
     def setUp(self):

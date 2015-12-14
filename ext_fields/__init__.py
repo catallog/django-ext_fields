@@ -1,1 +1,1 @@
-from ext_fields import ExFieldsDecorator
+from ext_fields.decorators import ExFieldsDecorator
