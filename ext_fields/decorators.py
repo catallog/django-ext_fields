@@ -38,6 +38,7 @@ def ExFieldsDecorator(cls):
     cls.ext_fields = ExFieldsDescriptors(fields_tables, fields_models)
     cls.ext_fields_manager = ExFieldsManager(fields_tables, fields_models)
     cls.__ex_fields_class = fields_models
-    setattr(cls, 'as_dict', as_dict )
+    cls.as_dict = as_dict
+    cls.ext_fields_data = property(lambda instance: instance.ext_fields)
 
     return cls
