@@ -4,6 +4,9 @@
 # @Link    : http://www.collabo.com.br/
 
 from __future__ import unicode_literals
+from ext_fields.exceptions import ExFieldInvalidTypeSet
+from ext_fields.exceptions import ExFieldUnableSaveFieldType
+
 
 class ExFieldsDescriptors(object):
     def __init__(self, fields_tables, fields_models):
@@ -84,12 +87,12 @@ class ExFieldsDescriptors(object):
             t = self.__ex_fields_class[tname]()
             t.field = field
             t.fk = instance
-        except:
+        except:#pragma:no cover
             raise
 
         t.value = value
         t.save()
 
-    def __delete__(self, instance):
+    def __delete__(self, instance):#pragma:no cover
         if '__extendedFieldsCache' in instance.__dict__:
             del instance.__dict__.__extendedFieldsCache

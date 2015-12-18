@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from ext_fields import *
 from .models import SimpleModel
+from ext_fields.exceptions import ExFieldExceptionCannotDel
+from ext_fields.exceptions import ExFieldExceptionCannotSet
+from ext_fields.exceptions import ExFieldInvalidTypeSet
+from ext_fields.exceptions import ExFieldUnableSaveFieldType
+
 
 class ExtFieldTestCase(TestCase):
     def setUp(self):
@@ -179,3 +183,49 @@ class ExtFieldTestCase(TestCase):
 
         self.assertEqual(mod.ext_fields_data.get('email'), 'email@ext.com')
         self.assertEqual(mod.ext_fields_data.get('name'), 'Mail E.')
+
+    def test_descriptors(self):
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+        try:
+            mod.ext_fields = ('test', 'test_val', 'out of bounds',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = (1, 'Incompatible key',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = 5.67
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = ('key', object(),)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+    def test_manager_exceptions(self):
+
+        s = str('mail')
+        try:
+            a = SimpleModel.ext_fields_manager.filter(email__startswith=False)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+
+        try:
+            mod.ext_fields_manager = object()
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldExceptionCannotSet)
+
+    def test_exclusion(self):
+
+        self.assertEqual(
+            SimpleModel.ext_fields_manager.exclude(name='Mail E.').count(), 3
+        )
