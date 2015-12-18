@@ -3,18 +3,20 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 
-from django.db import models
-from ext_fields import *
+from .models import SimpleModel
+from ext_fields.exceptions import ExFieldExceptionCannotDel
+from ext_fields.exceptions import ExFieldExceptionCannotSet
+from ext_fields.exceptions import ExFieldInvalidTypeSet
+from ext_fields.exceptions import ExFieldUnableSaveFieldType
 
-@ExFieldsDecorator
-class SimpleModel(models.Model):
-    email = models.CharField(max_length=256)
 
 class ExtFieldTestCase(TestCase):
     def setUp(self):
         SimpleModel.objects.create(email='lala@lele.com').ext_fields = {'asdf': 'fdsa', 'kkk': 10, 'hhh': 3, 'lll': '=)'}
         SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4}
         SimpleModel.objects.create(email='lolo@lele.com').ext_fields = {'asdf': 'dfgh', 'kkk': 12, 'lll': '=)'}
+        SimpleModel.objects.create(email='email@model.com').ext_fields = {'email': 'email@ext.com', 'name': 'Mail E.'}
+
 
     def test_can_get_after_save(self):
         """Check if load is ok"""
@@ -92,11 +94,13 @@ class ExtFieldTestCase(TestCase):
         """check if can get name of distinct fields correctly"""
         dfields = SimpleModel.ext_fields_manager.distinct_fields()
 
-        self.assertEqual(len(dfields), 4)
+        self.assertEqual(len(dfields), 6)
         self.assertEqual('asdf' in dfields, True)
         self.assertEqual('hhh' in dfields, True)
         self.assertEqual('lll' in dfields, True)
         self.assertEqual('kkk' in dfields, True)
+        self.assertEqual('name' in dfields, True)
+        self.assertEqual('email' in dfields, True)
 
     def test_have_opt(self):
         """check if will correctly return the have filter"""
@@ -104,19 +108,19 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(len(k), 3)
 
         k = SimpleModel.ext_fields_manager.filter(asdf__have=False).values('email')
-        self.assertEqual(len(k), 0)
+        self.assertEqual(len(k), 1)
 
         k = SimpleModel.ext_fields_manager.filter(hhh__have=True).values('email')
         self.assertEqual(len(k), 2)
 
         k = SimpleModel.ext_fields_manager.filter(hhh__have=False).values('email')
-        self.assertEqual(len(k), 1)
+        self.assertEqual(len(k), 2)
 
         k = SimpleModel.ext_fields_manager.filter(lll__have=True).values('email')
         self.assertEqual(len(k), 2)
 
         k = SimpleModel.ext_fields_manager.filter(lll__have=False).values('email')
-        self.assertEqual(len(k), 1)
+        self.assertEqual(len(k), 2)
 
     def test_extended_opt(self):
         """check if especial options will work"""
@@ -160,3 +164,68 @@ class ExtFieldTestCase(TestCase):
 
         self.assertEqual('asdf' in k12, True)
         self.assertEqual('kkk' in k12, False)
+
+
+    def test_serializers_helpers(self):
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+        self.assertEqual(mod.email, 'email@model.com')
+
+        self.assertEqual(mod.as_dict().get('email'), 'email@model.com')
+        self.assertEqual(mod.as_dict().get('name'), 'Mail E.')
+
+        self.assertEqual(mod.as_dict(False).get('email'), 'email@model.com')
+        self.assertEqual(mod.as_dict(False).get('name'), 'Mail E.')
+
+        self.assertEqual(mod.as_dict(True).get('email'), 'email@ext.com')
+        self.assertEqual(mod.as_dict(True).get('name'), 'Mail E.')
+
+        self.assertEqual(mod.ext_fields_data.get('email'), 'email@ext.com')
+        self.assertEqual(mod.ext_fields_data.get('name'), 'Mail E.')
+
+    def test_descriptors(self):
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+        try:
+            mod.ext_fields = ('test', 'test_val', 'out of bounds',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = (1, 'Incompatible key',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = 5.67
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = ('key', object(),)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+    def test_manager_exceptions(self):
+
+        s = str('mail')
+        try:
+            a = SimpleModel.ext_fields_manager.filter(email__startswith=False)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+
+        try:
+            mod.ext_fields_manager = object()
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldExceptionCannotSet)
+
+    def test_exclusion(self):
+
+        self.assertEqual(
+            SimpleModel.ext_fields_manager.exclude(name='Mail E.').count(), 3
+        )

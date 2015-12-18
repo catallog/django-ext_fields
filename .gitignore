@@ -1,2 +1,4 @@
 *.pyc
 django_ext_fields.egg-info/
+coverage_*
+.coverage
