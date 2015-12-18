@@ -51,9 +51,8 @@ class InternalExFieldsManager:
             'have',
         )
 
-        p = None
+        query = None
         for fname, fopt in argv.items():
-            q = None
 
             opt = 'exact'
             opts_path = fname.split('__')[-1]
@@ -63,26 +62,21 @@ class InternalExFieldsManager:
 
             if opt == 'have':
                 for tname, ttype in self._fields_tables.items():
-                    x = models.Q(((tname+'__field').lower(), fname,))
+                    sub_query = models.Q(((tname+'__field').lower(), fname,))
                     if fopt:
-                        q = (q | x) if q else x
+                        query = (query | sub_query) if query else sub_query
                     else:
-                        q = (q & (~x)) if q else ~x
+                        query = (query & (~sub_query)) if query else ~sub_query
             else:
                 for tname, ttype in self._fields_tables.items():
                     if type(fopt) is ttype[0]:
-                        q = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
+                        query = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
                             & models.Q(((tname+'__field').lower(), fname,))
                         break
                 else:
                     raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
 
-            if not p:
-                p = q
-            else:
-                p = p & q
-
-        return p
+        return query
 
     def filter(self, queryset=None, **argv):
         if not queryset:
@@ -124,6 +118,6 @@ class ExFieldsManager(object):
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')
 
-    def __del__(self, instance):
+    def __del__(self, instance): #pragma:no cover
         raise ExFieldExceptionCannotDel('Cannot del ext_fields_manager property')
 
