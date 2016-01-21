@@ -12,11 +12,12 @@ def create_ex_fields_parent(cls):
     class ExtendedFieldsParent(models.Model):
         fk = models.ForeignKey(cls, null=False)
         field = models.CharField(max_length=128, null=False)
+        lang = models.CharField(max_length=5, null=True, blank=True)
 
         class Meta:
             abstract = True
-            unique_together = (('field', 'fk',),)
-            index_together = ('field', 'fk',)
+            unique_together = (('field', 'fk','lang',),)
+            index_together = ('field', 'fk','lang',)
 
     return ExtendedFieldsParent
 
