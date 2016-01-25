@@ -16,27 +16,24 @@ class ExFieldsDescriptors(object):
     def __init__(self, fields_tables, fields_models):
         self._fields_tables = fields_tables
         self.__ex_fields_class = fields_models
+        self._qscache = None
 
     def _get_new_queryset(self, owner):
-        subs = []
-        count = 0
-        app_alias = owner._meta.db_table.split('_')[0]
-        for k in self._fields_tables.keys():
-            values = []
-            for c in range(len(self._fields_tables.keys())):
-                if c==count:
-                    values.append("VALUE AS val%d"%c)
-                else:
-                    values.append("NULL AS val%d"%c)
-            count += 1
-
-            table = app_alias + '_' + k.lower()
-            subs.append(
-                "SELECT field, fk_id, lang, " + ','.join(values) + " FROM {}".format(table)
-            )
-        core = ' UNION ALL '.join(subs)
-        q = "SELECT * FROM ({}) WHERE fk_id = %s AND lang = %s".format(core)
-        return q
+        if not self._qscache:
+            subs = []
+            count = 0
+            app_alias = owner._meta.db_table.split('_')[0]
+            for k in self._fields_tables.keys():
+                values = [ "value AS val%d"%c if c==count else "NULL AS val%d"%c for c in range(len(self._fields_tables.keys()))]
+                count += 1
+                table = app_alias + '_' + k.lower()
+                subs.append("SELECT field, fk_id, lang, %s FROM %s" % ( ', '.join(values), table))
+            self._qscache = "SELECT * FROM (%s)" % ' UNION ALL '.join(subs)
+            if hasattr(settings, 'EXTFIELDS_ENABLE_FALBACK') and settings.EXTFIELDS_ENABLE_FALBACK:
+                self._qscache += " WHERE fk_id = %s AND lang IN (%s, '" + settings.LANGUAGE_CODE  + "')"
+            else:
+                self._qscache += " WHERE fk_id = %s AND lang = %s"
+        return self._qscache
 
     def __get__(self, instance, owner):
 
