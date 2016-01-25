@@ -1,50 +1,54 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.test import TestCase
-
 from .models import SimpleModel
+from django.test import TestCase
+from django.utils import translation
+from django.conf import settings
 from ext_fields.exceptions import ExFieldExceptionCannotDel
 from ext_fields.exceptions import ExFieldExceptionCannotSet
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
+from django.db import connection
 
 
 class ExtFieldTestCase(TestCase):
     def setUp(self):
+        translation.activate(settings.LANGUAGE_CODE)
         a = SimpleModel.objects.create(email='my@pet.com')
         a.ext_fields = {'name': 'Tob', 'age': 15 , 'weight_uniti': 'Kg', 'weight': 22, 'color': 'Unknown', 'type': 'dog', 'breed': 'NA' }
+        translation.activate('pt')
+        a.ext_fields = {'name': 'Totó', 'age': 15 , 'weight_uniti': 'Kg', 'weight': 22, 'color': 'Desconhecida', 'type': 'Cachorro', 'breed': 'NA' }
 
+        translation.activate(settings.LANGUAGE_CODE)
         b = SimpleModel.objects.create(email='his@pet.com')
         b.ext_fields = {'name': 'James', 'age': 3, 'weight_uniti': 'Kg', 'weight': 1, 'color': 'Black', 'type': 'dog', 'breed': 'Pincher' }
+        translation.activate('pt')
+        b.ext_fields = {'name': 'João', 'age': 3, 'weight_uniti': 'Kg', 'weight': 1, 'color': 'Preto', 'type': 'Cachorro', 'breed': 'Pequenes' }
 
+        translation.activate(settings.LANGUAGE_CODE)
         c = SimpleModel.objects.create(email='her@pet.com')
         c.ext_fields = {'name': 'Octopus', 'age': 1, 'weight_uniti': 'g', 'weight': 0.2 , 'color': 'Gray', 'type': 'spider', 'breed': 'Wolf' }
+        translation.activate('pt')
+        c.ext_fields = {'name': 'Otávio', 'age': 1, 'weight_uniti': 'g', 'weight': 0.2 , 'color': 'Cinza', 'type': 'aranha', 'breed': 'Lobo' }
 
+    def test_basic_descriptor_test(self):
+        a = SimpleModel.objects.get(email='my@pet.com').ext_fields
+        b = SimpleModel.objects.get(email='his@pet.com').ext_fields
+        c = SimpleModel.objects.get(email='her@pet.com').ext_fields
 
-    def build_query(self, base):
-        v = [
-            ['string'], ['field', 'value']
-        ]
+        translation.activate(settings.LANGUAGE_CODE)
+        self.assertEqual(a.get('name'), 'Tob')
+        self.assertEqual(b.get('name'), 'James')
+        self.assertEqual(c.get('name'), 'Octopus')
+        self.assertEqual(a.get('color'), 'Unknown')
+        self.assertEqual(b.get('color'), 'Black')
+        self.assertEqual(c.get('color'), 'Gray')
 
-        fields = [ 'simplemodelextendedfields%s__%s'%(a,b) for b in v[1] for a in v[0] ]
-
-        base = base.values(*fields)
-
-        print "-"*50
-        print base.values(*fields).query
-        print "-"*50
-
-        return base
-
-    def test_can_get_after_save(self):
-
-        base = SimpleModel.objects.filter(email='my@pet.com')
-        self.assertEqual(base.count(), 1)
-
-        rqs = self.build_query(base)
-
-        for i in self.build_query(base):
-            print "\t>", i
-
-        self.assertEqual(rqs.count(), 7)
+        translation.activate('pt')
+        self.assertEqual(a.get('name'), 'Totó')
+        self.assertEqual(b.get('name'), 'João')
+        self.assertEqual(c.get('name'), 'Otávio')
+        self.assertEqual(a.get('color'), 'Desconhecida')
+        self.assertEqual(b.get('color'), 'Preto')
+        self.assertEqual(c.get('color'), 'Cinza')

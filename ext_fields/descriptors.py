@@ -9,6 +9,7 @@ from ext_fields.exceptions import ExFieldUnableSaveFieldType
 from django.utils import translation
 from django.conf import settings
 from django.db.models import Q
+from django.db import connection
 
 
 class ExFieldsDescriptors(object):
@@ -16,42 +17,43 @@ class ExFieldsDescriptors(object):
         self._fields_tables = fields_tables
         self.__ex_fields_class = fields_models
 
-    def _get_new_queryset(self, owner, instance):
-        return owner.objects.filter(pk=instance.pk)
+    def _get_new_queryset(self, owner):
+        subs = []
+        count = 0
+        app_alias = owner._meta.db_table.split('_')[0]
+        for k in self._fields_tables.keys():
+            values = []
+            for c in range(len(self._fields_tables.keys())):
+                if c==count:
+                    values.append("VALUE AS val%d"%c)
+                else:
+                    values.append("NULL AS val%d"%c)
+            count += 1
 
-
-    def _build_filters(self, field, value):
-        return reduce(
-                lambda a,b: a | b ,
-                map(lambda x: Q(**{ (x+'__'+field).lower():value}),self._fields_tables.keys())
+            table = app_alias + '_' + k.lower()
+            subs.append(
+                "SELECT field, fk_id, lang, " + ','.join(values) + " FROM {}".format(table)
             )
+        core = ' UNION ALL '.join(subs)
+        q = "SELECT * FROM ({}) WHERE fk_id = %s AND lang = %s".format(core)
+        return q
 
     def __get__(self, instance, owner):
+
         if '__extendedFieldsCache' not in instance.__dict__:
             instance.__extendedFieldsCache = dict()
 
-            lang = translation.get_language()
-            queryset = self._get_new_queryset(owner, instance)
+            cursor = connection.cursor()
+            cursor.execute(
+                self._get_new_queryset(owner),
+                [
+                    instance.pk,
+                    translation.get_language()
+                ]
+            )
 
-            columns_fields = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
-            columns_values = map(lambda x: (x+'__value').lower(), self._fields_tables.keys())
-            columns = columns_fields + columns_values
-
-            filters = self._build_filters('lang', lang)
-            fields = queryset.filter(filters).values(*columns).distinct()
-
-            for row in fields:
-                vl = {}
-                for k, v in row.items():
-                    if v != None:
-                        ftname = k[:-5]
-                        ttname = k[-5:]
-
-                        vl[ftname] = vl[ftname] if ftname in vl else {}
-                        vl[ftname][ttname] = v
-
-                for k, v in vl.items():
-                    instance.__extendedFieldsCache[v['field']] = v['value']
+            for r in cursor.fetchall():
+                instance.__extendedFieldsCache[r[0]] = reduce(lambda a,b: a or b, r[3:])
 
         return instance.__extendedFieldsCache
 
