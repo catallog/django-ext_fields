@@ -13,9 +13,8 @@ from .exceptions import ExFieldUnableSaveFieldType
 
 class InternalExFieldsManager:
 
-    def __init__(self, owner, fields_tables, fields_models):
+    def __init__(self, owner, fields_models):
         self._owner = owner
-        self._fields_tables = fields_tables
         self.__ex_fields_class = fields_models
 
     def _get_new_queryset(self):
@@ -51,6 +50,9 @@ class InternalExFieldsManager:
             'have',
         )
 
+
+        ext_table_name = self._owner.__name__ + 'ExtFields'
+
         query = None
         for fname, fopt in argv.items():
 
@@ -61,20 +63,21 @@ class InternalExFieldsManager:
                 fname = fname[:len(fname)-len(opt)-2]
 
             if opt == 'have':
-                for tname, ttype in self._fields_tables.items():
-                    sub_query = models.Q(((tname+'__field').lower(), fname,))
-                    if fopt:
-                        query = (query | sub_query) if query else sub_query
-                    else:
-                        query = (query & (~sub_query)) if query else ~sub_query
+                sub_query = models.Q(
+                    ((ext_table_name + '__field').lower(), fname,)
+                )
+                query = sub_query if fopt else ~sub_query
             else:
-                for tname, ttype in self._fields_tables.items():
-                    if type(fopt) is ttype[0]:
-                        query = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
-                            & models.Q(((tname+'__field').lower(), fname,))
-                        break
-                else:
-                    raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
+
+                query = models.Q()
+
+                # for tname, ttype in self._fields_tables.items():
+                #     if type(fopt) is ttype[0]:
+                #         query = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
+                #             & models.Q(((tname+'__field').lower(), fname,))
+                #         break
+                # else:
+                #     raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
 
         return query
 
@@ -107,13 +110,11 @@ class InternalExFieldsManager:
 
 class ExFieldsManager(object):
 
-    def __init__(self, fields_tables, fields_models):
-        self._fields_tables = fields_tables
+    def __init__(self, fields_models):
         self.__ex_fields_class = fields_models
 
     def __get__(self, instance, owner):
-        return InternalExFieldsManager(owner, self._fields_tables,
-            self.__ex_fields_class)
+        return InternalExFieldsManager(owner, self.__ex_fields_class)
 
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')

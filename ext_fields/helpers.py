@@ -12,6 +12,10 @@ def create_ex_fields_parent(cls):
     class ExtendedFieldsParent(models.Model):
         fk = models.ForeignKey(cls, null=False)
         field = models.CharField(max_length=128, null=False)
+        value_str = models.CharField(max_length=256, null=True, blank=True, default=None)
+        value_int = models.IntegerField(null=True, blank=True, default=None)
+        value_float = models.FloatField(null=True, blank=True, default=None)
+        value_date = models.DateTimeField(null=True, blank=True, default=None)
 
         class Meta:
             abstract = True

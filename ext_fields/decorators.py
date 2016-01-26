@@ -22,22 +22,13 @@ def ExFieldsDecorator(cls):
     defaults_common = {'__module__': cls.__module__}
     defaults_common['Meta'] = cls.Meta if hasattr(cls, 'Meta') else EmptyMeta
 
-    name_base = cls.__name__ + 'ExtendedFields'
-    fields_tables = {
-        name_base+'String':  (unicode,  models.CharField, {'null':False, 'max_length':256},),
-        name_base+'Integer': (int,      models.IntegerField, {'null':False},),
-        name_base+'Float':   (float,    models.FloatField, {'null':False},),
-        name_base+'Date':    (datetime, models.DateTimeField, {'null':False},)
-    }
-    fields_models = dict()
-    for k, v in fields_tables.items():
-        prop = {'value': v[1](**(v[2]))}
-        prop.update(defaults_common)
-        fields_models[k] = type(str(k), (create_ex_fields_parent(cls),), prop)
+    ext_table_name = cls.__name__ + 'ExtFields'
 
-    cls.ext_fields = ExFieldsDescriptors(fields_tables, fields_models)
-    cls.ext_fields_manager = ExFieldsManager(fields_tables, fields_models)
-    cls.__ex_fields_class = fields_models
+    model_class = type(str(ext_table_name), (create_ex_fields_parent(cls),), defaults_common)
+
+    cls.ext_fields = ExFieldsDescriptors(model_class)
+    cls.ext_fields_manager = ExFieldsManager(model_class)
+    cls.__ex_fields_class = model_class
     cls.as_dict = as_dict
     cls.ext_fields_data = property(lambda instance: instance.ext_fields)
 
