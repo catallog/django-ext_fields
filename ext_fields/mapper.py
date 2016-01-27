@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from datetime import datetime
 
 
-class TypeMapper(object):
+class Mapper(object):
 
     _PREFIX = 'value_'
 
@@ -18,10 +18,10 @@ class TypeMapper(object):
     }
 
     def __init__(self, model_class):
-        self.__ex_fields_class = model_class
+        self.model_class = model_class
 
     def get_field_related(self, *args):
-        chunks = [ self.__ex_fields_class._meta.model_name ]
+        chunks = [ self.model_class._meta.model_name ]
         chunks += args
         return ( '__'.join(chunks)).lower()
 

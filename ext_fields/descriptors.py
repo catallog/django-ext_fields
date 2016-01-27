@@ -6,26 +6,20 @@
 from __future__ import unicode_literals
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
-from ext_fields.typemapper import TypeMapper
+from ext_fields.mapper import Mapper
 
 
-class ExFieldsDescriptors(TypeMapper):
-
-    def __init__(self, model_class):
-        self.__ex_fields_class = model_class
-        TypeMapper.__init__(self, model_class)
+class ExFieldsDescriptors(Mapper):
 
     def __get__(self, instance, owner):
         if '__extFielCache' not in instance.__dict__:
             instance.__extFielCache = dict()
-            res = self.__ex_fields_class.objects.filter(fk=instance.pk).all()
+            res = self.model_class.objects.filter(fk=instance.pk).all()
             for row in res:
                 instance.__extFielCache[row.field] = self.get_row_value(row)
         return instance.__extFielCache
 
     def __set__(self, instance, value):
-        self.__delete__(instance)
-
         if (type(value) is tuple):
             if len(value) is not 2:
                 raise ExFieldInvalidTypeSet('on setting ext_fields: Invalid lenght'
@@ -49,11 +43,11 @@ class ExFieldsDescriptors(TypeMapper):
         return value
 
     def _delete_field(self, instance, field):
-        self.__ex_fields_class.objects.filter(fk=instance, field=field).delete()
+        self.model_class.objects.filter(fk=instance, field=field).delete()
 
     def _set_field(self, instance, field, value):
         if self.get_value_map(value):
-            self.__ex_fields_class.objects.update_or_create(
+            self.model_class.objects.update_or_create(
                 fk=instance, field=field,
                 defaults=self.get_dict_val(value)
             )

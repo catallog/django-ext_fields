@@ -9,8 +9,6 @@ from .descriptors import ExFieldsDescriptors
 from .helpers import as_dict
 from .helpers import create_ex_fields_parent
 from .managers import ExFieldsManager
-from datetime import datetime
-from django.db import models
 
 
 class EmptyMeta:

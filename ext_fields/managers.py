@@ -5,20 +5,18 @@
 
 from __future__ import unicode_literals
 
-from django.db import models
 from django.db.models import Q
 from ext_fields.exceptions import ExFieldExceptionCannotSet
 from ext_fields.exceptions import ExFieldExceptionCannotDel
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
-from ext_fields.typemapper import TypeMapper
+from ext_fields.mapper import Mapper
 
 
-class InternalExFieldsManager(TypeMapper):
+class InternalExFieldsManager(Mapper):
 
     def __init__(self, model_class, owner):
-        self.__ex_fields_class = model_class
         self.__owner = owner
-        TypeMapper.__init__(self, model_class)
+        Mapper.__init__(self, model_class)
 
     def _get_new_queryset(self):
         return self.__owner.objects

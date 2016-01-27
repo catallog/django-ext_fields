@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 SECRET_KEY = 'nosecret'
 
 INSTALLED_APPS = [
-    "tests",
+    "tests.flat",
 ]
 
 DATABASES = {
