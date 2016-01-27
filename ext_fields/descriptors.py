@@ -7,6 +7,13 @@ from __future__ import unicode_literals
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
 from ext_fields.mapper import Mapper
+from django.utils import translation
+from django.conf import settings
+from django.db.models import Q
+
+
+TRANSLATE = getattr(settings, "EXTFIELDS_TRANSLATE", False)
+FALLBACK_TRANSLATE = getattr(settings, "EXTFIELDS_FALLBACK_TRANSLATE", False)
 
 
 class ExFieldsDescriptors(Mapper):
@@ -14,7 +21,23 @@ class ExFieldsDescriptors(Mapper):
     def __get__(self, instance, owner):
         if '__extFielCache' not in instance.__dict__:
             instance.__extFielCache = dict()
-            res = self.model_class.objects.filter(fk=instance.pk).all()
+
+            if TRANSLATE:
+                lang=translation.get_language()
+                is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
+
+                if FALLBACK_TRANSLATE and not is_default_lang:
+                    res = self.model_class.objects.filter(fk=instance.pk).filter(
+                        Q(lang=lang) | Q(lang=settings.LANGUAGE_CODE)
+                    ).all()
+                    res = sorted(res,lambda a,b: 0 if a==b else -1 if a==settings.LANGUAGE_CODE else 1, lambda x: x.lang)
+
+                else:
+                    res = self.model_class.objects.filter(fk=instance.pk, lang=lang).all()
+            else:
+                res = self.model_class.objects.filter(fk=instance.pk).all()
+
+
             for row in res:
                 instance.__extFielCache[row.field] = self.get_row_value(row)
         return instance.__extFielCache
@@ -43,14 +66,23 @@ class ExFieldsDescriptors(Mapper):
         return value
 
     def _delete_field(self, instance, field):
-        self.model_class.objects.filter(fk=instance, field=field).delete()
+        params = { 'fk':instance, 'field':field }
+        if TRANSLATE:
+            params['lang'] = translation.get_language()
+        self.model_class.objects.filter(**params).delete()
 
     def _set_field(self, instance, field, value):
         if self.get_value_map(value):
-            self.model_class.objects.update_or_create(
-                fk=instance, field=field,
-                defaults=self.get_dict_val(value)
-            )
+            params = {
+                'fk': instance,
+                'field': field,
+                'defaults': self.get_dict_val(value)
+            }
+
+            if TRANSLATE:
+                params['lang'] = translation.get_language()
+
+            self.model_class.objects.update_or_create(**params)
         else:
             raise ExFieldUnableSaveFieldType('for now only str, int, float and datetime'
                     +'can be used as extended fields')

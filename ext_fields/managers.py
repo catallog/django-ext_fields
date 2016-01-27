@@ -71,27 +71,17 @@ class InternalExFieldsManager(Mapper):
         return query
 
     def filter(self, queryset=None, **argv):
-        if not queryset:
-            queryset = self._get_new_queryset()
+        queryset = queryset or self._get_new_queryset()
         return queryset.filter(self._get_filtering(argv)).distinct()
 
     def exclude(self, queryset=None, **argv):
-        if not queryset:
-            queryset = self._get_new_queryset()
+        queryset = queryset or self._get_new_queryset()
         return queryset.exclude(self._get_filtering(argv)).distinct()
 
     def distinct_fields(self, queryset=None):
-        ret = list()
-
-        if not queryset:
-            queryset = self._get_new_queryset()
+        queryset = queryset or self._get_new_queryset()
         fields = queryset.values(self.get_field_related('field')).distinct()
-
-        for entry in fields:
-            for value in entry.values():
-                if value is not None and value not in ret:
-                    ret.append(value)
-        return ret
+        return map(lambda a: a.values()[0], fields)
 
 
 class ExFieldsManager(object):

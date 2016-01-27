@@ -20,16 +20,20 @@ class ExtFieldTestCase(TestCase):
         c = SimpleModel.objects.create(name='C3po', planet='Tatooine')
         d = SimpleModel.objects.create(name='Durge')
 
+        translation.activate('pt-br')
+        a.ext_fields = { 'name': 'Dart Vader', 'planet': 'Terra', 'race': 'Humano', 'gender': 'Homen' , 'material': 'Midi-chlorian' }
+        b.ext_fields = { 'name': 'Boba Feet', 'planet': 'Marte', 'race': 'Humano', 'gender': 'Homen' , 'material': 'Carbono' }
+
         translation.activate(settings.LANGUAGE_CODE)
         a.ext_fields = { 'name': 'Dart Vader', 'planet': 'Earth', 'race': 'Human', 'gender': 'Male', 'age': 34, 'weight': 79.5 , 'material': 'Midi-chlorian' }
         b.ext_fields = { 'name': 'Boba Feet', 'planet': 'Mars', 'race': 'Human', 'gender': 'Male', 'age': 25, 'weight': 72.2 , 'material': 'Carbon' }
-        c.ext_fields = { 'name': 'C3po', 'planet': 'Earth', 'race': 'Droid', 'age': 24, 'weight': 153.5 , 'color': 'Gold', 'material': 'Steel' }
+
+        translation.activate('pt-br')
+        c.ext_fields = { 'name': 'C3po', 'planet': 'Terra', 'race': 'Andróide' , 'color': 'Ouro', 'material': 'Aço' }
         d.ext_fields = { 'name': 'Durge', 'race': "Gen'Dai"}
 
-        translation.activate('pt-BR')
-        a.ext_fields = { 'name': 'Dart Vader', 'planet': 'Terra', 'race': 'Humano', 'gender': 'Homen' , 'material': 'Midi-chlorian' }
-        b.ext_fields = { 'name': 'Boba Feet', 'planet': 'Marte', 'race': 'Humano', 'gender': 'Homen' , 'material': 'Carbono' }
-        c.ext_fields = { 'name': 'C3po', 'planet': 'Terra', 'race': 'Andróide' , 'color': 'Ouro', 'material': 'Aço' }
+        translation.activate(settings.LANGUAGE_CODE)
+        c.ext_fields = { 'name': 'C3po', 'planet': 'Earth', 'race': 'Droid', 'age': 24, 'weight': 153.5 , 'color': 'Gold', 'material': 'Steel' }
         d.ext_fields = { 'name': 'Durge', 'race': "Gen'Dai"}
 
 
@@ -38,7 +42,7 @@ class ExtFieldTestCase(TestCase):
         a = SimpleModel.objects.filter(name='Anakin').last()
         b = SimpleModel.objects.filter(name='Boba').last()
         c = SimpleModel.objects.filter(name='C3po').last()
-        d = SimpleModel.objects.filter(name='C3po').last()
+        d = SimpleModel.objects.filter(name='Durge').last()
 
         translation.activate(settings.LANGUAGE_CODE)
         self.assertEqual(a.ext_fields.get('race'), 'Human')
@@ -46,7 +50,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(c.ext_fields.get('race'), 'Droid')
         self.assertEqual(d.ext_fields.get('race'), "Gen'Dai")
 
-        translation.activate('pt-BR')
+        translation.activate('pt-br')
         self.assertEqual(a.ext_fields.get('race'), 'Humano')
         self.assertEqual(b.ext_fields.get('race'), 'Humano')
         self.assertEqual(c.ext_fields.get('race'), 'Andróide')
@@ -83,7 +87,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_filter_translated_field_value_selected_lang(self):
 
-        translation.activate('pt-BR')
+        translation.activate('pt-br')
         humans = SimpleModel.ext_fields_manager.filter(race='Humano').count()
         droids = SimpleModel.ext_fields_manager.filter(race='Andróide').count()
 
@@ -113,7 +117,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_distinctfields_selected_lang(self):
 
-        translation.activate('pt-BR')
+        translation.activate('pt-br')
         dfields = SimpleModel.ext_fields_manager.distinct_fields()
 
         self.assertTrue('race' in dfields)
@@ -151,7 +155,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_have_option_in_selected_lang(self):
 
-        translation.activate('pt-BR')
+        translation.activate('pt-br')
         has_race_count = SimpleModel.ext_fields_manager.filter(race__have=True).count()
         has_gender_count = SimpleModel.ext_fields_manager.filter(gender__have=True).count()
         has_color_count = SimpleModel.ext_fields_manager.filter(color__have=True).count()
@@ -234,7 +238,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_asdict_im_selected_lang(self):
 
-        translation.activate('pt-BR')
+        translation.activate('pt-br')
         a_n = SimpleModel.objects.filter(name='Anakin').last().as_dict()
         b_n = SimpleModel.objects.filter(name='Boba').last().as_dict()
         c_n = SimpleModel.objects.filter(name='C3po').last().as_dict()
