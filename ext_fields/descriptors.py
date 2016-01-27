@@ -6,32 +6,18 @@
 from __future__ import unicode_literals
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
-from datetime import datetime
+from ext_fields.typemapper import TypeMapper
 
-class ExFieldsDescriptors(object):
 
-    typemap = {
-        'int': [ int ],
-        'str': [ str, unicode ],
-        'float': [ float ],
-        'date': [ datetime ]
-    }
+class ExFieldsDescriptors(TypeMapper):
 
     def __init__(self, model_class):
         self.__ex_fields_class = model_class
-
-    def is_supported(self, value):
-        last_valid_match = lambda a,b: a or type(value) in b
-        return reduce(last_valid_match, self.typemap.values(), False)
-
-    def get_row_value(self, row):
-        last_nonempty_field = lambda a, b: a or getattr(row, 'value_%s' % b)
-        return reduce(last_nonempty_field, self.typemap.keys(), None)
+        TypeMapper.__init__(self, model_class)
 
     def __get__(self, instance, owner):
         if '__extFielCache' not in instance.__dict__:
             instance.__extFielCache = dict()
-
             res = self.__ex_fields_class.objects.filter(fk=instance.pk).all()
             for row in res:
                 instance.__extFielCache[row.field] = self.get_row_value(row)
@@ -60,26 +46,20 @@ class ExFieldsDescriptors(object):
         else:
             raise ExFieldInvalidTypeSet('To set a extended field, give a tuple with key'
                 +' value, a list with KV tuples OR a dict')
-
         return value
 
     def _delete_field(self, instance, field):
         self.__ex_fields_class.objects.filter(fk=instance, field=field).delete()
 
     def _set_field(self, instance, field, value):
-        if self.is_supported(value):
-            vt = type(value)
-            upd = { 'value_%s' % k : value if vt in v else None for k,v in self.typemap.items() }
-            try:
-                self.__ex_fields_class.objects.update_or_create(
-                    fk=instance, field=field, defaults=upd
-                )
-            except Exception, e:
-                raise e
+        if self.get_value_map(value):
+            self.__ex_fields_class.objects.update_or_create(
+                fk=instance, field=field,
+                defaults=self.get_dict_val(value)
+            )
         else:
             raise ExFieldUnableSaveFieldType('for now only str, int, float and datetime'
                     +'can be used as extended fields')
-
 
     def __delete__(self, instance):#pragma:no cover
         if '__extFielCache' in instance.__dict__:
