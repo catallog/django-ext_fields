@@ -229,3 +229,16 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(
             SimpleModel.ext_fields_manager.exclude(name='Mail E.').count(), 3
         )
+
+    def test_implicit_type_cast(self):
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+        mod.ext_fields = { 'area': 'outside hall'}
+        self.assertTrue( type(mod.ext_fields.get('area')) in [str, unicode])
+
+        mod.ext_fields = { 'area': 34}
+        self.assertEqual(type(mod.ext_fields.get('area')),int)
+
+        mod.ext_fields = { 'area': 33.98 }
+        self.assertEqual(type(mod.ext_fields.get('area')),float)

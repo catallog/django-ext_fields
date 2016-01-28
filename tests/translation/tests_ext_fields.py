@@ -183,17 +183,24 @@ class ExtFieldTestCase(TestCase):
 
         translation.activate(settings.LANGUAGE_CODE)
         group_1 = SimpleModel.ext_fields_manager.filter(color__startswith='Go').values('name')
-        group_2 = SimpleModel.ext_fields_manager.filter(color__endswith='n').values('name')
+        group_2 = SimpleModel.ext_fields_manager.filter(material__endswith='n').values('name')
         group_3 = SimpleModel.ext_fields_manager.filter(material__contains='ee').values('name')
-        group_4 = SimpleModel.ext_fields_manager.filter(material__icontains='ee').values('name')
+        group_4 = SimpleModel.ext_fields_manager.filter(material__icontains='Ee').values('name')
+        group_5 = SimpleModel.ext_fields_manager.filter(
+            race__regex='^[A-Za-z]+$'
+        ).values('name')
 
-        self.assertTrue('C3po' in group_1)
-        self.assertTrue('Anakin' in group_2)
-        self.assertTrue('Boba' in group_2)
-        self.assertTrue('C3po' in group_3)
-        self.assertTrue('Anakin' in group_4)
-        self.assertTrue('Boba' in group_4)
-        self.assertTrue('Durge' in group_4)
+        extvals = lambda n,s: map(lambda a: a.get(n),s)
+
+        self.assertTrue('C3po' in extvals('name', group_1))
+        self.assertTrue('Anakin' in extvals('name', group_2))
+        self.assertTrue('Boba' in extvals('name', group_2))
+        self.assertTrue('C3po' in extvals('name', group_3))
+        self.assertTrue('C3po' in extvals('name', group_4))
+        self.assertTrue('Anakin' in extvals('name', group_5))
+        self.assertTrue('C3po' in extvals('name', group_5))
+        self.assertTrue('Boba' in extvals('name', group_5))
+        self.assertTrue('Durge' not in extvals('name', group_5))
 
     def test_asdict_im_default_lang(self):
 
@@ -319,3 +326,58 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(d_n.get('weight'), None)
 
 
+    def test_deletion(self):
+        a = SimpleModel.objects.get(name='Anakin')
+        b = SimpleModel.objects.get(name='Boba')
+
+        a.ext_fields = { 'material': None }
+        b.ext_fields = { 'race': None }
+
+        a = SimpleModel.objects.get(name='Anakin')
+        b = SimpleModel.objects.get(name='Boba')
+
+        self.assertFalse('material' in a.ext_fields.keys() )
+        self.assertFalse('race' in b.ext_fields.keys() )
+
+    def test_descriptors(self):
+
+        mod = SimpleModel.objects.get(name='Anakin')
+
+        try:
+            mod.ext_fields = ('test', 'test_val', 'out of bounds',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = (1, 'Incompatible key',)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = 5.67
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldInvalidTypeSet)
+
+        try:
+            mod.ext_fields = ('key', object(),)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+    def test_manager_exceptions(self):
+
+        try:
+            a = SimpleModel.ext_fields_manager.filter(color__startswith=False)
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
+
+        mod = SimpleModel.objects.get(name='Boba')
+        try:
+            mod.ext_fields_manager = object()
+        except Exception, ex:
+            self.assertIsInstance(ex, ExFieldExceptionCannotSet)
+
+    def test_exclusion(self):
+
+        self.assertEqual(
+            SimpleModel.ext_fields_manager.exclude(name='C3po').count(), 3
+        )
