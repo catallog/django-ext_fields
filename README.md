@@ -1,36 +1,25 @@
-# Ext_Fields
+# ExtFields
+An Django decorator to allow arbitrary data storing in models.
 
-## WTF?
-This is a decorator to allow django models have arbitrary data fields.
-
-## But what is your motivation?
-Well, sometimes you are developing something, its not your fault, but things
-change, and requisites come from everywhere... And you are tired on running really
-slow migrations on clients databases.
-
-Ok, so you decide that its time to allow the client at least decide their own
-model fields. Such: what information should a client contain? Residential number?
-Cellphone number? Security number?
-
-And you want to do it completely dynamically, so you don't need to worry anymore.
-
-To make things easy we created a decorator that you put in your django models
-to allow them have any additional arbitrary fields using a simple EAV approach.
-It is simple, fast, and you don't need to worry about it. It is NOT the final ultimate
-solution for the problem, but a really handy one, that can be used in virtually
-any existing project.
+## Motivation
+We work with a very heterogeneous product catalog. It ranges from structural pieces like pipes and electrical switches to furnitures and clothes.
+Guess what? The informations related to those products are heterogeneous too. They range in quantity as well as in format. It has very precise data from mechanical products like its diameter, weight and pressure to some subjective descriptions or fancy color names like "fuchsia".
+So, we decided to use an EAV like approach to store and retrieve those data.
 
 ## Ok, show me more
 So this is your current code:
 
+```python
     class Client(models.Model):
         name = models.CharField(null=False, max_length=150)
         email = models.CharField(null=False, max_length=100)
 
         account = models.ForeignKey(MyAccount)
+```
 
 you could do something like that:
 
+```python
     from ext_fields import ExFieldsDecorator
 
     @ExFieldsDecorator
@@ -39,9 +28,11 @@ you could do something like that:
         name = models.CharField(null=False, max_length=150)
 
         account = models.ForeignKey(MyAccount)
+```
 
 and now we could do something like:
 
+```python
     #create client with email and cellphone in it.....
     c = Client.objects.create(name='Chuck', account=acc)
     c.ext_fields = {'email': 'chuck@world.com', 'cellphone': '+1 5737 9144'}
@@ -61,42 +52,47 @@ and now we could do something like:
 
     #delete some fields....
     k.ext_fields = {'cellphone':None}
+```
 
-## And, what are the current limitations?
+## It also has support to translation
 
-Well there is some, first of all, you cannot change the type of a field without
-deleting it before. This may cause some errors and will make both values be stored
-on the database. I made it this way, because forcing a delete when you don't need to
-is unnecessary, and I simply don't want to store a metadata about the field to increase
-speed and simplicity. So:
+It's not enabled by default so you have to configure that adding the key "EXTFIELDS_TRANSLATE=True" to your project's settings
 
-    #this is fine
-    c.ext_fields = {'cellphone': '+1 5737 9144'}
-    c.ext_fields = {'cellphone': '+1 5737 9154'}
-    c.ext_fields = {'cellphone': 'I Love My Mother'}
+This settings tells ext_fields to consider the django current language in its queries.
+Then, you can use ir like that:
 
-    #this is NOT
-    c.ext_fields = {'cellphone': '+1 5737 9144'}
-    c.ext_fields = {'cellphone': 11}
-    c.ext_fields = {'cellphone': 2.7}
+```python
+    ...
+    c = SimpleModel.objects.create(name='C3po', planet='Tatooine')
+    d = SimpleModel.objects.create(name='Durge')
 
-    #do THIS instead
-    c.ext_fields = {'cellphone': '+1 5737 9144'}
-    c.ext_fields = {'cellphone': None} #delete this field first
-    c.ext_fields = {'cellphone': 11}
-    c.ext_fields = {'cellphone': None} #delete this field first
-    c.ext_fields = {'cellphone': 2.7}
+    translation.activate('en-us')
+    c.ext_fields = { 'race': 'Droid' }
+    d.ext_fields = { 'race': "Gen'Dai"}
 
-Queries are cached, so, if you changed the properties of your object in the
-database this may not reflect in your already loaded object, to clean the cache
-you simply do:
+    #Translating C3po race to Brazilian portuguese
+    translation.activate('pt-br')
+    c.ext_fields = { 'race': 'Andróide' }
 
-    #cleans the local cache
-    del c.ext_fields
+    #Querying races in other language
+    translation.activate('en-us')
+    c.ext_fields.get('race') #RESULT: Droid
 
-And actually there is no way to currently make a batch update in these fields. So
-if you want to update all instances of a given model, you can only rely on for-loops
-or a custom made SQL.
+    #As the active language changes the result permutes accordingly
+    translation.activate('pt-br')
+    c.ext_fields.get('race') #RESULT: Andróide
+
+    ...
+```
+
+Fallback to default language can be enabled with the config "EXTFIELDS_FALLBACK_TRANSLATE=True". The default language is defined by the Django setting "LANGUAGE_CODE". That way, when a field has no translation in the active language the value of the default language will be returned.
+
+In the previous example we are missing Durge's race translation. In that case, callings from Brazilian portugues(pt-br) will return the values of fallback language entry ie.: LANGUAGE_CODE=en-us
+```Python
+    d = SimpleModel.objects.filter(name='Durge')
+    translation.activate('pt-br')
+    d.ext_fields.get('rage') #RESULT: Gen'Dai
+```
 
 ## I have some awesome idea, can I help?
 
@@ -106,5 +102,3 @@ Of couse! That's why it is on github, feel free to make forks and pull requests!
 
 Ok there are some open todos...
 * Make it work on Python 3
-* Make tests cover 100% of the code, and make them cover 100% of the functionality
-* Fix some small documenting issues with doxygen
