@@ -4,12 +4,12 @@
 # @Link    : http://www.collabo.com.br/
 
 from __future__ import unicode_literals
+from django.conf import settings
+from django.db.models import Q
+from django.utils import translation
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
 from ext_fields.mapper import Mapper
-from django.utils import translation
-from django.conf import settings
-from django.db.models import Q
 
 
 TRANSLATE = getattr(settings, "EXTFIELDS_TRANSLATE", False)
@@ -67,8 +67,6 @@ class ExFieldsDescriptors(Mapper):
 
     def _delete_field(self, instance, field):
         params = { 'fk':instance, 'field':field }
-        if TRANSLATE:
-            params['lang'] = translation.get_language()
         self.model_class.objects.filter(**params).delete()
 
     def _set_field(self, instance, field, value):
