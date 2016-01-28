@@ -34,7 +34,7 @@ class ExtFieldTestCase(TestCase):
 
         translation.activate(settings.LANGUAGE_CODE)
         c.ext_fields = { 'name': 'C3po', 'planet': 'Earth', 'race': 'Droid', 'age': 24, 'weight': 153.5 , 'color': 'Gold', 'material': 'Steel' }
-        d.ext_fields = { 'name': 'Durge', 'race': "Gen'Dai"}
+        d.ext_fields = { 'name': 'Durge', 'race': "Gen'Dai", 'age': 0.0 }
 
 
     def test_get_in_activated_language(self):
@@ -55,6 +55,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(b.ext_fields.get('race'), 'Humano')
         self.assertEqual(c.ext_fields.get('race'), 'Andróide')
         self.assertEqual(d.ext_fields.get('race'), "Gen'Dai")
+        self.assertEqual(d.ext_fields.get('age'), 0.0)
 
     def test_fallback_to_default_language(self):
 

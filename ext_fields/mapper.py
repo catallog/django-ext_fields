@@ -33,7 +33,11 @@ class Mapper(object):
         return self._PREFIX + self.get_value_map(value)
 
     def get_row_value(self, row):
-        last_nonempty_field = lambda a, b: a or getattr(row, self._PREFIX + b)
+        def last_nonempty_field(a,b):
+            val = getattr(row, self._PREFIX + b)
+            if val is not None:
+                return val
+            return a
         return reduce(last_nonempty_field, self.TYPEMAP.keys(), None)
 
     def get_dict_val(self, value):
