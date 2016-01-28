@@ -1,5 +1,5 @@
 # ExtFields
-An Django decorator to allow arbitrary data storing in models.
+A Django decorator to allow arbitrary data storing in models.
 
 ## Motivation
 We work with a very heterogeneous product catalog. It ranges from structural pieces like pipes and electrical switches to furnitures and clothes.
@@ -62,6 +62,9 @@ This settings tells ext_fields to consider the django current language in its qu
 Then, you can use ir like that:
 
 ```python
+
+    from django.utils import translation
+
     ...
     c = SimpleModel.objects.create(name='C3po', planet='Tatooine')
     d = SimpleModel.objects.create(name='Durge')
