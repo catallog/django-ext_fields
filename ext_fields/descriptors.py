@@ -19,6 +19,9 @@ FALLBACK_TRANSLATE = getattr(settings, "EXTFIELDS_FALLBACK_TRANSLATE", False)
 class ExFieldsDescriptors(Mapper):
 
     def __get__(self, instance, owner):
+        if not instance:
+            return None
+
         if '__extFielCache' not in instance.__dict__:
             instance.__extFielCache = dict()
 
