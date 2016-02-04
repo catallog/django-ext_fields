@@ -237,7 +237,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(a_n.get('age'), 34)
         self.assertEqual(b_n.get('age'), 25)
         self.assertEqual(c_n.get('age'), 24)
-        self.assertEqual(d_n.get('age'), None)
+        self.assertEqual(d_n.get('age'), 0.0)
 
         self.assertEqual(a_n.get('weight'), 79.5)
         self.assertEqual(b_n.get('weight'), 72.2)
@@ -278,7 +278,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(a_n.get('age'), 34)
         self.assertEqual(b_n.get('age'), 25)
         self.assertEqual(c_n.get('age'), 24)
-        self.assertEqual(d_n.get('age'), None)
+        self.assertEqual(d_n.get('age'), 0.0)
 
         self.assertEqual(a_n.get('weight'), 79.5)
         self.assertEqual(b_n.get('weight'), 72.2)
@@ -319,7 +319,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(a_n.get('age'), 34)
         self.assertEqual(b_n.get('age'), 25)
         self.assertEqual(c_n.get('age'), 24)
-        self.assertEqual(d_n.get('age'), None)
+        self.assertEqual(d_n.get('age'), 0.0)
 
         self.assertEqual(a_n.get('weight'), 79.5)
         self.assertEqual(b_n.get('weight'), 72.2)
