@@ -57,9 +57,9 @@ class InternalExFieldsManager(Mapper):
             opts_path = fname.split('__')[-1]
             if opts_path in qoptions:
                 opt = opts_path
-                fname = fname[:len(fname)-len(opt)-2]
+                fname = fname[:len(fname) - len(opt) - 2]
 
-            sub_query = Q( ( self.get_field_related('field'), fname,) )
+            sub_query = Q((self.get_field_related('field'), fname,))
             if opt == 'have':
                 query = sub_query if fopt else ~sub_query
             else:
@@ -67,7 +67,7 @@ class InternalExFieldsManager(Mapper):
                     raise ExFieldUnableSaveFieldType('Value assigned to query not supported in ' + fname)
                 value_field = self.get_value_field_name(fopt)
                 lookup_value = self.get_field_related(value_field, opt)
-                query = Q( ( self.get_field_related('field'), fname,) ) & Q( (lookup_value, fopt,) )
+                query = Q((self.get_field_related('field'), fname,)) & Q((lookup_value, fopt,))
         return query
 
     def filter(self, queryset=None, **argv):
@@ -95,6 +95,5 @@ class ExFieldsManager(object):
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')
 
-    def __del__(self, instance): #pragma:no cover
+    def __del__(self, instance):  # pragma:no cover
         raise ExFieldExceptionCannotDel('Cannot del ext_fields_manager property')
-

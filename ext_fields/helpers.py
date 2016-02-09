@@ -13,7 +13,7 @@ def create_ex_fields_parent(cls):
         fk = models.ForeignKey(cls, null=False)
         field = models.CharField(max_length=128, null=False)
         lang = models.CharField(max_length=5, null=True, blank=True, default=None)
-        value_str = models.CharField(max_length=256, null=True, blank=True, default=None)
+        value_str = models.TextField(null=True, blank=True, default=None)
         value_int = models.IntegerField(null=True, blank=True, default=None)
         value_float = models.FloatField(null=True, blank=True, default=None)
         value_date = models.DateTimeField(null=True, blank=True, default=None)
@@ -28,7 +28,7 @@ def create_ex_fields_parent(cls):
 
 def as_dict(self, override=False):
     def __get_ext_fields_dicts__(ovr):
-        model_fields = { k:v for k,v in self.__dict__.items() if not k.startswith('_') }
+        model_fields = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
         if ovr:
             return model_fields, self.ext_fields
         return self.ext_fields, model_fields

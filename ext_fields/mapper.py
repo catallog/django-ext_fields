@@ -11,29 +11,29 @@ class Mapper(object):
     _PREFIX = 'value_'
 
     TYPEMAP = {
-        'int': [ int ],
-        'str': [ str, unicode ],
-        'float': [ float ],
-        'date': [ datetime ]
+        'int': [int],
+        'str': [str, unicode],
+        'float': [float],
+        'date': [datetime]
     }
 
     def __init__(self, model_class):
         self.model_class = model_class
 
     def get_field_related(self, *args):
-        chunks = [ self.model_class._meta.model_name ]
+        chunks = [self.model_class._meta.model_name]
         chunks += args
-        return ( '__'.join(chunks)).lower()
+        return ('__'.join(chunks)).lower()
 
     def get_value_map(self, value):
-        first_valid_match = lambda a,b: b[0] if type(value) in b[1] else a
+        first_valid_match = lambda a, b: b[0] if type(value) in b[1] else a
         return reduce(first_valid_match, self.TYPEMAP.items(), None)
 
     def get_value_field_name(self, value):
         return self._PREFIX + self.get_value_map(value)
 
     def get_row_value(self, row):
-        def last_nonempty_field(a,b):
+        def last_nonempty_field(a, b):
             val = getattr(row, self._PREFIX + b)
             if val is not None:
                 return val
@@ -42,4 +42,4 @@ class Mapper(object):
 
     def get_dict_val(self, value):
         vm = self.get_value_map(value)
-        return  { self._PREFIX + k : value if vm == k else None for k in self.TYPEMAP.keys() }
+        return {self._PREFIX + k: value if vm == k else None for k in self.TYPEMAP.keys()}
