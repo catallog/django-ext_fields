@@ -25,9 +25,12 @@ class ExFieldsDescriptors(Mapper):
         if '__extFielCache' not in instance.__dict__:
             instance.__extFielCache = dict()
 
-            if TRANSLATE:
+            if TRANSLATE and self.translated:
                 lang = translation.get_language()
-                is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
+                if lang and hasattr(settings, 'LANGUAGE_CODE'):
+                    is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
+                else:
+                    is_default_lang = True
 
                 if FALLBACK_TRANSLATE and not is_default_lang:
                     res = self.model_class.objects.filter(fk=instance.pk).filter(
@@ -79,7 +82,7 @@ class ExFieldsDescriptors(Mapper):
                 'defaults': self.get_dict_val(value)
             }
 
-            if TRANSLATE:
+            if TRANSLATE and self.translated:
                 params['lang'] = translation.get_language()
 
             self.model_class.objects.update_or_create(**params)

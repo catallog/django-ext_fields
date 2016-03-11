@@ -15,7 +15,7 @@ class EmptyMeta:
     pass
 
 
-def ExFieldsDecorator(cls):
+def ExFieldsDecorator(cls, **kwarg):
 
     defaults_common = {'__module__': cls.__module__}
     defaults_common['Meta'] = cls.Meta if hasattr(cls, 'Meta') else EmptyMeta
@@ -24,7 +24,7 @@ def ExFieldsDecorator(cls):
 
     model_class = type(str(ext_table_name), (create_ex_fields_parent(cls),), defaults_common)
 
-    cls.ext_fields = ExFieldsDescriptors(model_class)
+    cls.ext_fields = ExFieldsDescriptors(model_class, **kwarg)
     cls.ext_fields_manager = ExFieldsManager(model_class)
     cls.__ex_fields_class = model_class
     cls.as_dict = as_dict

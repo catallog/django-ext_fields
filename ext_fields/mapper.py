@@ -17,7 +17,8 @@ class Mapper(object):
         'date': [datetime]
     }
 
-    def __init__(self, model_class):
+    def __init__(self, model_class, **kwargs):
+        self.translated = kwargs.get('translate', True)
         self.model_class = model_class
 
     def get_field_related(self, *args):
