@@ -13,7 +13,7 @@ from ext_fields.exceptions import ExFieldUnableSaveFieldType
 class ExtFieldTestCase(TestCase):
     def setUp(self):
         SimpleModel.objects.create(email='lala@lele.com').ext_fields = {'asdf': 'fdsa', 'kkk': 10, 'hhh': 3, 'lll': '=)'}
-        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4}
+        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4, 'zero': 0.0 }
         SimpleModel.objects.create(email='lolo@lele.com').ext_fields = {'asdf': 'dfgh', 'kkk': 12, 'lll': '=)'}
         SimpleModel.objects.create(email='email@model.com').ext_fields = {'email': 'email@ext.com', 'name': 'Mail E.'}
 
@@ -60,6 +60,7 @@ class ExtFieldTestCase(TestCase):
 
         self.assertEqual(k11['asdf'], 11)
         self.assertEqual(k11['kkk'], 11)
+        self.assertEqual(k11['zero'], 0.0)
 
         self.assertEqual(k12['asdf'], 'dfgh')
         self.assertEqual(k12['kkk'], 'test4')
@@ -94,7 +95,7 @@ class ExtFieldTestCase(TestCase):
         """check if can get name of distinct fields correctly"""
         dfields = SimpleModel.ext_fields_manager.distinct_fields()
 
-        self.assertEqual(len(dfields), 6)
+        self.assertEqual(len(dfields), 7)
         self.assertEqual('asdf' in dfields, True)
         self.assertEqual('hhh' in dfields, True)
         self.assertEqual('lll' in dfields, True)
@@ -229,3 +230,16 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(
             SimpleModel.ext_fields_manager.exclude(name='Mail E.').count(), 3
         )
+
+    def test_implicit_type_cast(self):
+
+        mod = SimpleModel.objects.get(email='email@model.com')
+
+        mod.ext_fields = { 'area': 'outside hall'}
+        self.assertTrue( type(mod.ext_fields.get('area')) in [str, unicode])
+
+        mod.ext_fields = { 'area': 34}
+        self.assertEqual(type(mod.ext_fields.get('area')),int)
+
+        mod.ext_fields = { 'area': 33.98 }
+        self.assertEqual(type(mod.ext_fields.get('area')),float)
