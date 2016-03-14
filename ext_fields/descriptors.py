@@ -4,95 +4,92 @@
 # @Link    : http://www.collabo.com.br/
 
 from __future__ import unicode_literals
+from django.conf import settings
+from django.db.models import Q
+from django.utils import translation
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
+from ext_fields.mapper import Mapper
 
 
-class ExFieldsDescriptors(object):
-    def __init__(self, fields_tables, fields_models):
-        self._fields_tables = fields_tables
-        self.__ex_fields_class = fields_models
+TRANSLATE = getattr(settings, "EXTFIELDS_TRANSLATE", False)
+FALLBACK_TRANSLATE = getattr(settings, "EXTFIELDS_FALLBACK_TRANSLATE", False)
 
-    def _get_new_queryset(self, owner, instance):
-        return owner.objects.filter(pk=instance.pk)
+
+class ExFieldsDescriptors(Mapper):
 
     def __get__(self, instance, owner):
-        if '__extendedFieldsCache' not in instance.__dict__:
-            instance.__extendedFieldsCache = dict()
+        if not instance:
+            return None
 
-            queryset = self._get_new_queryset(owner, instance)
-            columns_fields = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
-            columns_values = map(lambda x: (x+'__value').lower(), self._fields_tables.keys())
-            columns = columns_fields + columns_values
-            fields = queryset.values(*columns).distinct()
+        if '__extFielCache' not in instance.__dict__:
+            instance.__extFielCache = dict()
 
-            for row in fields:
-                vl = {}
-                for k, v in row.items():
-                    if v != None:
-                        ftname = k[:-5]
-                        ttname = k[-5:]
+            if TRANSLATE and self.translated:
+                lang = translation.get_language()
+                if lang and hasattr(settings, 'LANGUAGE_CODE'):
+                    is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
+                else:
+                    is_default_lang = True
 
-                        vl[ftname] = vl[ftname] if ftname in vl else {}
-                        vl[ftname][ttname] = v
+                if FALLBACK_TRANSLATE and not is_default_lang:
+                    res = self.model_class.objects.filter(fk=instance.pk).filter(
+                        Q(lang=lang) | Q(lang=settings.LANGUAGE_CODE)
+                    ).all()
+                    res = sorted(res, lambda a, b: 0 if a == b else -1 if a == settings.LANGUAGE_CODE else 1, lambda x: x.lang)
 
-                for k, v in vl.items():
-                    instance.__extendedFieldsCache[v['field']] = v['value']
+                else:
+                    res = self.model_class.objects.filter(fk=instance.pk, lang=lang).all()
+            else:
+                res = self.model_class.objects.filter(fk=instance.pk).all()
 
-        return instance.__extendedFieldsCache
+            for row in res:
+                instance.__extFielCache[row.field] = self.get_row_value(row)
+        return instance.__extFielCache
 
     def __set__(self, instance, value):
-        self.__delete__(instance)
-
         if (type(value) is tuple):
             if len(value) is not 2:
                 raise ExFieldInvalidTypeSet('on setting ext_fields: Invalid lenght'
-                    +' for tuple, len(value) must be 2, first item with key, second'
-                    +' the holder value')
+                                            ' for tuple, len(value) must be 2, first item with key, second'
+                                            ' the holder value')
             if type(value[0]) not in (str, unicode,):
                 raise ExFieldInvalidTypeSet('on setting ext_fields, first field on '
-                    +'property tuple must be str with field name')
+                                            'property tuple must be str with field name')
 
             if value[1] is None:
                 return self._delete_field(instance, value[0])
-
-            for tname, ttype in self._fields_tables.items():
-                if ttype[0] is type(value[1]):
-                    self._set_field(tname, instance, value[0], value[1])
-                    break
-            else:
-                raise ExFieldUnableSaveFieldType('for now only str, int, float and datetime'
-                    +'can be used as extended fields')
+            self._set_field(instance, value[0], value[1])
 
         elif type(value) is list:
-            [ self.__set__(instance, v) for v in value ]
+            [self.__set__(instance, v) for v in value]
         elif type(value) is dict:
             self.__set__(instance, value.items())
         else:
             raise ExFieldInvalidTypeSet('To set a extended field, give a tuple with key'
-                +' value, a list with KV tuples OR a dict')
-
+                                        ' value, a list with KV tuples OR a dict')
         return value
 
     def _delete_field(self, instance, field):
-        for tname, ttype in self._fields_tables.items():
-            self.__ex_fields_class[tname].objects \
-                .filter(fk=instance, field=field).delete()
+        params = {'fk': instance, 'field': field}
+        self.model_class.objects.filter(**params).delete()
 
-    def _set_field(self, tname, instance, field, value):
-        t = None
-        try:
-            t = self.__ex_fields_class[tname].objects.get(fk=instance, field=field)
-        except self.__ex_fields_class[tname].DoesNotExist:
-            t = self.__ex_fields_class[tname]()
-            t.field = field
-            t.fk = instance
-        except:#pragma:no cover
-            raise
+    def _set_field(self, instance, field, value):
+        if self.get_value_map(value):
+            params = {
+                'fk': instance,
+                'field': field,
+                'defaults': self.get_dict_val(value)
+            }
 
-        t.value = value
-        t.save()
+            if TRANSLATE and self.translated:
+                params['lang'] = translation.get_language()
 
-    def __delete__(self, instance):#pragma:no cover
-        if '__extendedFieldsCache' in instance.__dict__:
-            del instance.__dict__.__extendedFieldsCache
+            self.model_class.objects.update_or_create(**params)
+        else:
+            raise ExFieldUnableSaveFieldType('for now only str, int, float and datetime'
+                                             'can be used as extended fields')
+
+    def __delete__(self, instance):  # pragma:no cover
+        if '__extFielCache' in instance.__dict__:
+            del instance.__dict__.__extFielCache

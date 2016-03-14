@@ -5,21 +5,21 @@
 
 from __future__ import unicode_literals
 
-from django.db import models
-from .exceptions import ExFieldExceptionCannotSet
-from .exceptions import ExFieldExceptionCannotDel
-from .exceptions import ExFieldUnableSaveFieldType
+from django.db.models import Q
+from ext_fields.exceptions import ExFieldExceptionCannotSet
+from ext_fields.exceptions import ExFieldExceptionCannotDel
+from ext_fields.exceptions import ExFieldUnableSaveFieldType
+from ext_fields.mapper import Mapper
 
 
-class InternalExFieldsManager:
+class InternalExFieldsManager(Mapper):
 
-    def __init__(self, owner, fields_tables, fields_models):
-        self._owner = owner
-        self._fields_tables = fields_tables
-        self.__ex_fields_class = fields_models
+    def __init__(self, model_class, owner):
+        self.__owner = owner
+        Mapper.__init__(self, model_class)
 
     def _get_new_queryset(self):
-        return self._owner.objects
+        return self.__owner.objects
 
     def _get_filtering(self, argv):
         qoptions = (
@@ -53,71 +53,47 @@ class InternalExFieldsManager:
 
         query = None
         for fname, fopt in argv.items():
-
             opt = 'exact'
             opts_path = fname.split('__')[-1]
             if opts_path in qoptions:
                 opt = opts_path
-                fname = fname[:len(fname)-len(opt)-2]
+                fname = fname[:len(fname) - len(opt) - 2]
 
+            sub_query = Q((self.get_field_related('field'), fname,))
             if opt == 'have':
-                for tname, ttype in self._fields_tables.items():
-                    sub_query = models.Q(((tname+'__field').lower(), fname,))
-                    if fopt:
-                        query = (query | sub_query) if query else sub_query
-                    else:
-                        query = (query & (~sub_query)) if query else ~sub_query
+                query = sub_query if fopt else ~sub_query
             else:
-                for tname, ttype in self._fields_tables.items():
-                    if type(fopt) is ttype[0]:
-                        query = models.Q(((tname+'__value').lower()+'__'+opt, fopt,)) \
-                            & models.Q(((tname+'__field').lower(), fname,))
-                        break
-                else:
-                    raise ExFieldUnableSaveFieldType('Cannot select based on given type!')
-
+                if not self.get_value_map(fopt):
+                    raise ExFieldUnableSaveFieldType('Value assigned to query not supported in ' + fname)
+                value_field = self.get_value_field_name(fopt)
+                lookup_value = self.get_field_related(value_field, opt)
+                query = Q((self.get_field_related('field'), fname,)) & Q((lookup_value, fopt,))
         return query
 
     def filter(self, queryset=None, **argv):
-        if not queryset:
-            queryset = self._get_new_queryset()
+        queryset = queryset or self._get_new_queryset()
         return queryset.filter(self._get_filtering(argv)).distinct()
 
     def exclude(self, queryset=None, **argv):
-        if not queryset:
-            queryset = self._get_new_queryset()
+        queryset = queryset or self._get_new_queryset()
         return queryset.exclude(self._get_filtering(argv)).distinct()
 
     def distinct_fields(self, queryset=None):
-        ret = list()
-
-        if not queryset:
-            queryset = self._get_new_queryset()
-
-        columns = map(lambda x: (x+'__field').lower(), self._fields_tables.keys())
-        fields = queryset.values(*columns).distinct()
-
-        for entry in fields:
-            for value in entry.values():
-                if value is not None and value not in ret:
-                    ret.append(value)
-
-        return ret
+        queryset = queryset or self._get_new_queryset()
+        fields = queryset.values(self.get_field_related('field')).distinct()
+        return map(lambda a: a.values()[0], fields)
 
 
 class ExFieldsManager(object):
 
-    def __init__(self, fields_tables, fields_models):
-        self._fields_tables = fields_tables
-        self.__ex_fields_class = fields_models
+    def __init__(self, model_class):
+        self.__ex_fields_class = model_class
 
     def __get__(self, instance, owner):
-        return InternalExFieldsManager(owner, self._fields_tables,
-            self.__ex_fields_class)
+        return InternalExFieldsManager(self.__ex_fields_class, owner)
 
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')
 
-    def __del__(self, instance): #pragma:no cover
+    def __del__(self, instance):  # pragma:no cover
         raise ExFieldExceptionCannotDel('Cannot del ext_fields_manager property')
-
