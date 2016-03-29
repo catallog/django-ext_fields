@@ -4,6 +4,10 @@
 
 from __future__ import unicode_literals
 from datetime import datetime
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
+
+DETECT_DATE = getattr(settings, "EXTFIELDS_DETECT_DATE", False)
 
 
 class Mapper(object):
@@ -12,9 +16,9 @@ class Mapper(object):
 
     TYPEMAP = {
         'int': [int],
-        'str': [str, unicode],
         'float': [float],
-        'date': [datetime]
+        'date': [datetime],
+        'str': [str, unicode]
     }
 
     def __init__(self, model_class, **kwargs):
@@ -27,8 +31,14 @@ class Mapper(object):
         return ('__'.join(chunks)).lower()
 
     def get_value_map(self, value):
-        first_valid_match = lambda a, b: b[0] if type(value) in b[1] else a
-        return reduce(first_valid_match, self.TYPEMAP.items(), None)
+        value_type = type(value)
+        if DETECT_DATE and value_type in [str, unicode]:
+            if parse_datetime(value):
+                return 'date'
+        for k, v in self.TYPEMAP.items():
+            if value_type in v:
+                return k
+        return None
 
     def get_value_field_name(self, value):
         return self._PREFIX + self.get_value_map(value)
