@@ -70,7 +70,7 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(c.ext_fields.get('race'), 'Droid')
         self.assertEqual(d.ext_fields.get('race'), "Gen'Dai")
 
-        translation.activate('es-ES')
+        translation.activate('es-es')
         self.assertEqual(a.ext_fields.get('race'), 'Human')
         self.assertEqual(b.ext_fields.get('race'), 'Human')
         self.assertEqual(c.ext_fields.get('race'), 'Droid')
@@ -97,7 +97,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_filter_translated_field_value_fallback_lang(self):
 
-        translation.activate('es-ES')
+        translation.activate('es-es')
         humans = SimpleModel.ext_fields_manager.filter(race='Human').count()
         droids = SimpleModel.ext_fields_manager.filter(race='Droid').count()
 
@@ -130,7 +130,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_distinctfields_fallback_lang(self):
 
-        translation.activate('es-ES')
+        translation.activate('es-es')
         dfields = SimpleModel.ext_fields_manager.distinct_fields()
 
         self.assertTrue('race' in dfields)
@@ -169,7 +169,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_have_option_in_fallback_lang(self):
 
-        translation.activate('es-ES')
+        translation.activate('es-es')
         has_race_count = SimpleModel.ext_fields_manager.filter(race__have=True).count()
         has_gender_count = SimpleModel.ext_fields_manager.filter(gender__have=True).count()
         has_color_count = SimpleModel.ext_fields_manager.filter(color__have=True).count()
@@ -287,7 +287,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_asdict_im_fallback_lang(self):
 
-        translation.activate('es-ES')
+        translation.activate('es-es')
         a_n = SimpleModel.objects.filter(name='Anakin').last().as_dict()
         b_n = SimpleModel.objects.filter(name='Boba').last().as_dict()
         c_n = SimpleModel.objects.filter(name='C3po').last().as_dict()
