@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.test import TestCase
 
 from .models import SimpleModel
+
 from ext_fields.exceptions import ExFieldExceptionCannotDel
 from ext_fields.exceptions import ExFieldExceptionCannotSet
 from ext_fields.exceptions import ExFieldInvalidTypeSet
@@ -13,10 +14,9 @@ from ext_fields.exceptions import ExFieldUnableSaveFieldType
 class ExtFieldTestCase(TestCase):
     def setUp(self):
         SimpleModel.objects.create(email='lala@lele.com').ext_fields = {'asdf': 'fdsa', 'kkk': 10, 'hhh': 3, 'lll': '=)'}
-        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4, 'zero': 0.0 }
+        SimpleModel.objects.create(email='lili@lele.com').ext_fields = {'asdf': 'sdfg', 'kkk': 11, 'hhh': 4, 'zero': 0.0}
         SimpleModel.objects.create(email='lolo@lele.com').ext_fields = {'asdf': 'dfgh', 'kkk': 12, 'lll': '=)'}
         SimpleModel.objects.create(email='email@model.com').ext_fields = {'email': 'email@ext.com', 'name': 'Mail E.'}
-
 
     def test_can_get_after_save(self):
         """Check if load is ok"""
@@ -105,7 +105,7 @@ class ExtFieldTestCase(TestCase):
 
     def test_have_opt(self):
         """check if will correctly return the have filter"""
-        k = SimpleModel.ext_fields_manager.filter(asdf__have=True)#.values('email')
+        k = SimpleModel.ext_fields_manager.filter(asdf__have=True)
         self.assertEqual(len(k), 3)
 
         k = SimpleModel.ext_fields_manager.filter(asdf__have=False).values('email')
@@ -166,7 +166,6 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual('asdf' in k12, True)
         self.assertEqual('kkk' in k12, False)
 
-
     def test_serializers_helpers(self):
 
         mod = SimpleModel.objects.get(email='email@model.com')
@@ -219,7 +218,6 @@ class ExtFieldTestCase(TestCase):
 
         mod = SimpleModel.objects.get(email='email@model.com')
 
-
         try:
             mod.ext_fields_manager = object()
         except Exception, ex:
@@ -235,11 +233,14 @@ class ExtFieldTestCase(TestCase):
 
         mod = SimpleModel.objects.get(email='email@model.com')
 
-        mod.ext_fields = { 'area': 'outside hall'}
-        self.assertTrue( type(mod.ext_fields.get('area')) in [str, unicode])
+        mod.ext_fields = {'area': 'outside hall'}
+        self.assertTrue(type(mod.ext_fields.get('area')) in [str, unicode])
 
-        mod.ext_fields = { 'area': 34}
-        self.assertEqual(type(mod.ext_fields.get('area')),int)
+        mod.ext_fields = {'area': 34}
+        self.assertEqual(type(mod.ext_fields.get('area')), int)
 
-        mod.ext_fields = { 'area': 33.98 }
-        self.assertEqual(type(mod.ext_fields.get('area')),float)
+        mod.ext_fields = {'area': 33.98}
+        self.assertEqual(type(mod.ext_fields.get('area')), float)
+
+        mod.ext_fields = {'date': '2015-10-28T11:23:47.311Z'}
+        self.assertTrue(type(mod.ext_fields.get('date')) in [str, unicode])
