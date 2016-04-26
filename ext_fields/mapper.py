@@ -21,7 +21,7 @@ class Mapper(object):
         'str': [str, unicode]
     }
 
-    def __init__(self, model_class, **kwargs):
+    def __init__(self, model_class, *args, **kwargs):
         self.translated = kwargs.get('translate', True)
         self.model_class = model_class
 

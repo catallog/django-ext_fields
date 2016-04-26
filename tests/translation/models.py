@@ -13,3 +13,9 @@ from ext_fields.decorators import ExFieldsDecorator
 class SimpleModel(models.Model):
     name = models.CharField(max_length=128, null=False)
     planet = models.CharField(max_length=128, null=True, blank=True, default=None)
+
+
+@ExFieldsDecorator
+class SimpleNoTranslatedModel(models.Model):
+    name = models.CharField(max_length=128, null=False)
+    planet = models.CharField(max_length=128, null=True, blank=True, default=None)
