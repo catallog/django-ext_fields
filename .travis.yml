@@ -1,8 +1,29 @@
 language: python
+python: 2.7
+services: postgresql
 
-python:
-  - "2.7"
+env:
+  - DJANGO=1.9 TEST_DATABASE=sqlite3 SUBTEST=flat
+  - DJANGO=1.8 TEST_DATABASE=sqlite3 SUBTEST=flat
+  - DJANGO=1.9 TEST_DATABASE=postgres SUBTEST=flat
+  - DJANGO=1.8 TEST_DATABASE=postgres SUBTEST=flat
+  - DJANGO=1.9 TEST_DATABASE=sqlite3 SUBTEST=translation
+  - DJANGO=1.8 TEST_DATABASE=sqlite3 SUBTEST=translation
+  - DJANGO=1.9 TEST_DATABASE=postgres SUBTEST=translation
+  - DJANGO=1.8 TEST_DATABASE=postgres SUBTEST=translation
 
-install: "pip install -r requirements.txt"
+before_install:
+  - export DJANGO_SETTINGS_MODULE=$TEST_SETTINGS
+  - export PYTHONPATH=$HOME/builds/Basask/django-ext_fields
+  - export PIP_USE_MIRRORS=true
 
-script: sh test.sh
+install:
+  # - pip install -r requirements.txt
+  - pip install django==$DJANGO --quiet
+  - pip install psycopg2 --quiet
+
+before_script:
+  - psql -c "CREATE DATABASE travisci;" -U postgres
+
+script:
+  - python runtests.py
