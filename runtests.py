@@ -20,6 +20,8 @@ if __name__ == "__main__":
         failures = test_runner.run_tests([test_module])
         return bool(failures)
 
-    ret = run_tests(sys.argv[1])
+
+    subtest = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('SUBTEST')
+    ret = run_tests(subtest)
     sys.exit(ret)
 
