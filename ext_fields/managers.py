@@ -95,10 +95,10 @@ class InternalExFieldsManager(Mapper):
 class ExFieldsManager(object):
 
     def __init__(self, model_class):
-        self.__ex_fields_class = model_class
+        self.ext_model_class = model_class
 
     def __get__(self, instance, owner):
-        return InternalExFieldsManager(self.__ex_fields_class, owner)
+        return InternalExFieldsManager(self.ext_model_class, owner)
 
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')
