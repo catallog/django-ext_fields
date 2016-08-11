@@ -67,12 +67,13 @@ Client.ext_model_class.objects.filter(field="name", lang='en-us').first()
 ```
 The ExtModel fields are described bellow:
 
-|Field|Description|
-|-|-|
-|__fk__|A Foreign Key to Django base model|
-|__field__|A field name|
-|__value__|A field value |
-|__lang__|The value language (when language support is enabled) |
+Field | Description
+----- | -----------
+__fk__ | A Foreign Key to Django base model
+__field__ | A field name
+__value__ | A field value
+__lang__ | The value language (when language support is enabled)
+
 > Obs.: The __value__ actually is a helper property in model instance.
 > It returns the value of fields regardless of its store type
 
