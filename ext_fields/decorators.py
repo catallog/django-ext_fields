@@ -26,7 +26,7 @@ def ExFieldsDecorator(cls, **kwarg):
 
     cls.ext_fields = ExFieldsDescriptors(model_class, **kwarg)
     cls.ext_fields_manager = ExFieldsManager(model_class)
-    cls.__ex_fields_class = model_class
+    cls.ext_model_class = model_class
     cls.as_dict = as_dict
     cls.ext_fields_data = property(lambda instance: instance.ext_fields)
 
