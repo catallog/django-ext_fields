@@ -49,15 +49,23 @@ class InternalExFieldsManager(Mapper):
             'regex',
             'iregex',
             'have',
+            'unaccent'
         )
 
         query = None
         for fname, fopt in argv.items():
             opt = 'exact'
-            opts_path = fname.split('__')[-1]
-            if opts_path in qoptions:
-                opt = opts_path
-                fname = fname[:len(fname) - len(opt) - 2]
+            opts_path = fname.split('__')[1:]
+            valid_fnames = []
+            for opp in opts_path:
+                if opp in qoptions:
+                    opt = opp
+                    valid_fnames.append(opp)
+                    # fname = fname[:len(fname) - len(opt) - 2]
+            # fname = '__'.join(valid_fnames)
+            fname = fname.split('__')[0]
+            if len(valid_fnames):
+                opt = '__'.join(valid_fnames)
 
             sub_query = Q((self.get_field_related('field'), fname,))
             if opt == 'have':
@@ -87,10 +95,10 @@ class InternalExFieldsManager(Mapper):
 class ExFieldsManager(object):
 
     def __init__(self, model_class):
-        self.__ex_fields_class = model_class
+        self.ext_model_class = model_class
 
     def __get__(self, instance, owner):
-        return InternalExFieldsManager(self.__ex_fields_class, owner)
+        return InternalExFieldsManager(self.ext_model_class, owner)
 
     def __set__(self, instance, value):
         raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')

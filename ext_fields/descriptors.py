@@ -19,7 +19,7 @@ FALLBACK_TRANSLATE = getattr(settings, "EXTFIELDS_FALLBACK_TRANSLATE", False)
 class ExFieldsDescriptors(Mapper):
 
     def __get__(self, instance, owner):
-        if not instance:
+        if not instance:  # pragma:no cover
             return None
 
         if '__extFielCache' not in instance.__dict__:
@@ -27,10 +27,9 @@ class ExFieldsDescriptors(Mapper):
 
             if TRANSLATE and self.translated:
                 lang = translation.get_language()
+                is_default_lang = False
                 if lang and hasattr(settings, 'LANGUAGE_CODE'):
                     is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
-                else:
-                    is_default_lang = True
 
                 if FALLBACK_TRANSLATE and not is_default_lang:
                     res = self.model_class.objects.filter(fk=instance.pk).filter(
@@ -83,7 +82,10 @@ class ExFieldsDescriptors(Mapper):
             }
 
             if TRANSLATE and self.translated:
-                params['lang'] = translation.get_language()
+                lang = translation.get_language()
+                if not lang and FALLBACK_TRANSLATE:
+                    lang = settings.LANGUAGE_CODE
+                params['lang'] = lang
 
             self.model_class.objects.update_or_create(**params)
         else:

@@ -6,6 +6,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from ext_fields import constants
 
 
 def create_ex_fields_parent(cls):
@@ -22,6 +23,12 @@ def create_ex_fields_parent(cls):
             abstract = True
             unique_together = (('field', 'fk',),)
             index_together = ('field', 'fk',)
+
+        @property
+        def value(self):
+            def nonempty(a, b):
+                return a or getattr(self, constants.VALUE_PREFIX + b, None)
+            return reduce(nonempty, constants.TYPEMAP.keys(), None)
 
     return ExtendedFieldsParent
 
