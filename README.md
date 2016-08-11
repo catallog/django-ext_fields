@@ -1,6 +1,8 @@
 # ExtFields
 A Django decorator to allow arbitrary data storing in models.
 
+[![Build Status](https://travis-ci.org/collabo-br/django-ext_fields.svg?branch=master)](https://travis-ci.org/collabo-br/django-ext_fields)
+
 ## Motivation
 We work with a very heterogeneous product catalog. It ranges from structural pieces like pipes and electrical switches to furnitures and clothes.
 Guess what? The informations related to those products are heterogeneous too. They range in quantity as well as in format. It has very precise data from mechanical products like its diameter, weight and pressure to some subjective descriptions or fancy color names like "fuchsia".
