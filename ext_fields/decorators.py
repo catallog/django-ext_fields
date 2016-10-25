@@ -22,7 +22,11 @@ def ExFieldsDecorator(cls, **kwarg):
 
     ext_table_name = cls.__name__ + 'ExtFields'
 
-    model_class = type(str(ext_table_name), (create_ex_fields_parent(cls),), defaults_common)
+    model_class = type(
+        str(ext_table_name),
+        (create_ex_fields_parent(cls),),
+        defaults_common
+    )
 
     cls.ext_fields = ExFieldsDescriptors(model_class, **kwarg)
     cls.ext_fields_manager = ExFieldsManager(model_class)

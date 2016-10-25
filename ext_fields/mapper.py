@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
-from ext_fields import constants
+from ext_fields.constants import VALUE_PREFIX, TYPEMAP
 
 
 DETECT_DATE = getattr(settings, "EXTFIELDS_DETECT_DATE", False)
@@ -22,27 +22,32 @@ class Mapper(object):
         chunks += args
         return ('__'.join(chunks)).lower()
 
-    def get_value_map(self, value):
+    @staticmethod
+    def get_value_map(value):
         value_type = type(value)
         if DETECT_DATE and value_type in [str, unicode]:
             if parse_datetime(value):
                 return 'date'
-        for k, v in constants.TYPEMAP.items():
+        for k, v in TYPEMAP.items():
             if value_type in v:
                 return k
         return None
 
-    def get_value_field_name(self, value):
-        return constants.VALUE_PREFIX + self.get_value_map(value)
+    @classmethod
+    def get_value_field_name(cls, value):
+        return VALUE_PREFIX + cls.get_value_map(value)
 
-    def get_row_value(self, row):
+    @staticmethod
+    def get_row_value(row):
         def last_nonempty_field(a, b):
-            val = getattr(row, constants.VALUE_PREFIX + b)
+            val = getattr(row, VALUE_PREFIX + b)
             if val is not None:
                 return val
             return a
-        return reduce(last_nonempty_field, constants.TYPEMAP.keys(), None)
+        return reduce(last_nonempty_field, TYPEMAP.keys(), None)
 
-    def get_dict_val(self, value):
-        vm = self.get_value_map(value)
-        return {constants.VALUE_PREFIX + k: value if vm == k else None for k in constants.TYPEMAP.keys()}
+    @classmethod
+    def get_dict_val(cls, value):
+        vm = cls.get_value_map(value)
+        keys = TYPEMAP.keys()
+        return {VALUE_PREFIX + k: value if vm == k else None for k in keys}
