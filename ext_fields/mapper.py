@@ -22,7 +22,8 @@ class Mapper(object):
         chunks += args
         return ('__'.join(chunks)).lower()
 
-    def get_value_map(self, value):
+    @staticmethod
+    def get_value_map(value):
         value_type = type(value)
         if DETECT_DATE and value_type in [str, unicode]:
             if parse_datetime(value):
@@ -32,10 +33,12 @@ class Mapper(object):
                 return k
         return None
 
-    def get_value_field_name(self, value):
-        return constants.VALUE_PREFIX + self.get_value_map(value)
+    @classmethod
+    def get_value_field_name(cls, value):
+        return constants.VALUE_PREFIX + cls.get_value_map(value)
 
-    def get_row_value(self, row):
+    @staticmethod
+    def get_row_value(row):
         def last_nonempty_field(a, b):
             val = getattr(row, constants.VALUE_PREFIX + b)
             if val is not None:
@@ -43,6 +46,7 @@ class Mapper(object):
             return a
         return reduce(last_nonempty_field, constants.TYPEMAP.keys(), None)
 
-    def get_dict_val(self, value):
-        vm = self.get_value_map(value)
+    @classmethod
+    def get_dict_val(cls, value):
+        vm = cls.get_value_map(value)
         return {constants.VALUE_PREFIX + k: value if vm == k else None for k in constants.TYPEMAP.keys()}
