@@ -2,6 +2,8 @@
 A Django decorator to allow arbitrary data storing in models.
 
 [![Build Status](https://travis-ci.org/collabo-br/django-ext_fields.svg?branch=master)](https://travis-ci.org/collabo-br/django-ext_fields)
+[![codecov](https://codecov.io/gh/collabo-br/django-ext_fields/branch/master/graph/badge.svg)](https://codecov.io/gh/collabo-br/django-ext_fields)
+
 
 ## Motivation
 We work with a very heterogeneous product catalog. It ranges from structural pieces like pipes and electrical switches to furnitures and clothes.

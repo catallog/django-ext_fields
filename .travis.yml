@@ -3,12 +3,16 @@ python: 2.7
 services: postgresql
 
 env:
+  - DJANGO=1.10 TEST_DATABASE=sqlite3 SUBTEST=flat
   - DJANGO=1.9 TEST_DATABASE=sqlite3 SUBTEST=flat
   - DJANGO=1.8 TEST_DATABASE=sqlite3 SUBTEST=flat
+  - DJANGO=1.10 TEST_DATABASE=postgres SUBTEST=flat
   - DJANGO=1.9 TEST_DATABASE=postgres SUBTEST=flat
   - DJANGO=1.8 TEST_DATABASE=postgres SUBTEST=flat
+  - DJANGO=1.10 TEST_DATABASE=sqlite3 SUBTEST=translation
   - DJANGO=1.9 TEST_DATABASE=sqlite3 SUBTEST=translation
   - DJANGO=1.8 TEST_DATABASE=sqlite3 SUBTEST=translation
+  - DJANGO=1.10 TEST_DATABASE=postgres SUBTEST=translation
   - DJANGO=1.9 TEST_DATABASE=postgres SUBTEST=translation
   - DJANGO=1.8 TEST_DATABASE=postgres SUBTEST=translation
 
