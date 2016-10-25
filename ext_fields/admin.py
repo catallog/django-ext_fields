@@ -43,23 +43,28 @@ class ExtFieldsForm(forms.ModelForm):
         return a
 
 
-class ExtFieldsAdmin(admin.TabularInline):
-    classes = ('collapse',)
-    extra = 0
-    form = ExtFieldsForm
-    fields = ('field', 'value',)
-    readonly_fields = ('field',)
+def extFieldAdminFactory(baseclass):
+    class ExtFieldsAdmin(baseclass):
+        classes = ('collapse',)
+        extra = 0
+        form = ExtFieldsForm
+        fields = ('field', 'value',)
+        readonly_fields = ('field',)
 
-    def value(self, obj):
-        return obj.value
-    value.short_description = 'Value'
+        def value(self, obj):
+            return obj.value
+        value.short_description = 'Value'
 
-    def get_language(self, request):
-        return None
+        def get_language(self, request):
+            return None
 
-    def get_queryset(self, request):
-        qs = super(ExtFieldsAdmin, self).get_queryset(request)
-        lang = self.get_language(request)
-        if lang:
-            qs = qs.filter(lang=lang)
-        return qs
+        def get_queryset(self, request):
+            qs = super(ExtFieldsAdmin, self).get_queryset(request)
+            lang = self.get_language(request)
+            if lang:
+                qs = qs.filter(lang=lang)
+            return qs
+    return ExtFieldsAdmin
+
+ExtFieldsTabularInline = extFieldAdminFactory(admin.TabularInline)
+ExtFieldsStackedInline = extFieldAdminFactory(admin.StackedInline)
