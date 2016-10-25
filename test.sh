@@ -23,5 +23,4 @@ fi
 coverage combine
 coverage annotate -d "coverage_annotate"
 coverage report
-codecov
 
