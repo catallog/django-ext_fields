@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from django.test import TestCase
 
 from .models import SimpleModel, SimpleNoTranslatedModel
-from ext_fields.exceptions import ExFieldExceptionCannotDel
 from ext_fields.exceptions import ExFieldExceptionCannotSet
 from ext_fields.exceptions import ExFieldInvalidTypeSet
 from ext_fields.exceptions import ExFieldUnableSaveFieldType
@@ -17,30 +16,90 @@ import datetime
 class ExtFieldTestCase(TestCase):
     def setUp(self):
 
-        a = SimpleModel.objects.create(name='Anakin', planet='Tatooine')
-        b = SimpleModel.objects.create(name='Boba', planet='Kamino')
-        c = SimpleModel.objects.create(name='C3po', planet='Tatooine')
-        d = SimpleModel.objects.create(name='Durge')
+        a = SimpleModel.objects.create(
+            name='Anakin', planet='Tatooine')
 
-        e = SimpleNoTranslatedModel.objects.create(name='Chewbacca', planet='Kashyyyk')
+        b = SimpleModel.objects.create(
+            name='Boba', planet='Kamino')
+
+        c = SimpleModel.objects.create(
+            name='C3po', planet='Tatooine')
+
+        d = SimpleModel.objects.create(
+            name='Durge')
+
+        e = SimpleNoTranslatedModel.objects.create(
+            name='Chewbacca', planet='Kashyyyk')
 
         translation.activate('pt-br')
-        a.ext_fields = {'name': 'Dart Vader', 'planet': 'Terra', 'race': 'Humano', 'gender': 'Homen', 'material': 'Midi-chlorian'}
-        b.ext_fields = {'name': 'Boba Feet', 'planet': 'Marte', 'race': 'Humano', 'gender': 'Homen', 'material': 'Carbono'}
+        a.ext_fields = {
+            'name': 'Dart Vader',
+            'planet': 'Terra',
+            'race': 'Humano',
+            'gender': 'Homen',
+            'material': 'Midi-chlorian'
+        }
+        b.ext_fields = {
+            'name': 'Boba Feet',
+            'planet': 'Marte',
+            'race': 'Humano',
+            'gender': 'Homen',
+            'material': 'Carbono'
+        }
 
         translation.activate(settings.LANGUAGE_CODE)
-        a.ext_fields = {'name': 'Dart Vader', 'planet': 'Earth', 'race': 'Human', 'gender': 'Male', 'age': 34, 'weight': 79.5, 'material': 'Midi-chlorian'}
-        b.ext_fields = {'name': 'Boba Feet', 'planet': 'Mars', 'race': 'Human', 'gender': 'Male', 'age': 25, 'weight': 72.2, 'material': 'Carbon'}
+        a.ext_fields = {
+            'name': 'Dart Vader',
+            'planet': 'Earth',
+            'race': 'Human',
+            'gender': 'Male',
+            'age': 34,
+            'weight': 79.5,
+            'material': 'Midi-chlorian'
+        }
+        b.ext_fields = {
+            'name': 'Boba Feet',
+            'planet': 'Mars',
+            'race': 'Human',
+            'gender': 'Male',
+            'age': 25,
+            'weight': 72.2,
+            'material': 'Carbon'
+        }
 
         translation.activate('pt-br')
-        c.ext_fields = {'name': 'C3po', 'planet': 'Terra', 'race': 'Andróide', 'color': 'Ouro', 'material': 'Aço'}
-        d.ext_fields = {'name': 'Durge', 'race': "Gen'Dai"}
+        c.ext_fields = {
+            'name': 'C3po',
+            'planet': 'Terra',
+            'race': 'Andróide',
+            'color': 'Ouro',
+            'material': 'Aço'
+        }
+        d.ext_fields = {
+            'name': 'Durge',
+            'race': "Gen'Dai"
+        }
 
         translation.activate(settings.LANGUAGE_CODE)
-        c.ext_fields = {'name': 'C3po', 'planet': 'Earth', 'race': 'Droid', 'age': 24, 'weight': 153.5, 'color': 'Gold', 'material': 'Steel'}
-        d.ext_fields = {'name': 'Durge', 'race': "Gen'Dai", 'age': 0.0}
+        c.ext_fields = {
+            'name': 'C3po',
+            'planet': 'Earth',
+            'race': 'Droid',
+            'age': 24,
+            'weight': 153.5,
+            'color': 'Gold',
+            'material': 'Steel'
+        }
+        d.ext_fields = {
+            'name': 'Durge',
+            'race': "Gen'Dai",
+            'age': 0.0
+        }
 
-        e.ext_fields = {'name': 'Chewie', 'vehicle': 'Millenium Falcon'}
+        e.ext_fields = {
+            'name': 'Chewie',
+            'vehicle': 'Millenium Falcon'
+        }
 
     def test_get_in_activated_language(self):
 
@@ -62,9 +121,16 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(d.ext_fields.get('race'), "Gen'Dai")
         self.assertEqual(d.ext_fields.get('age'), 0.0)
 
-    def text_no_translated_model(self):
-        a = SimpleNoTranslatedModel.objects.filter(name='Chewbacca')
+    def test_no_translated_model(self):
+        a = SimpleNoTranslatedModel.objects.filter(name='Chewbacca').first()
         self.assertEqual(a.ext_fields.get('name'), 'Chewie')
+
+    def test_translation_fallback(self):
+        translation.deactivate_all()
+        a = SimpleModel.objects.filter(name='Anakin').first()
+        self.assertEqual(a.ext_fields.get('name'), 'Dart Vader')
+
+        a.ext_fields = {'name': 'Anakin Skywalker'}
 
     def test_fallback_to_default_language(self):
 
@@ -151,10 +217,14 @@ class ExtFieldTestCase(TestCase):
     def test_have_option_in_default_lang(self):
 
         translation.activate(settings.LANGUAGE_CODE)
-        has_race_count = SimpleModel.ext_fields_manager.filter(race__have=True).count()
-        has_gender_count = SimpleModel.ext_fields_manager.filter(gender__have=True).count()
-        has_color_count = SimpleModel.ext_fields_manager.filter(color__have=True).count()
-        has_material_count = SimpleModel.ext_fields_manager.filter(material__have=True).count()
+        has_race_count = SimpleModel.ext_fields_manager.filter(
+            race__have=True).count()
+        has_gender_count = SimpleModel.ext_fields_manager.filter(
+            gender__have=True).count()
+        has_color_count = SimpleModel.ext_fields_manager.filter(
+            color__have=True).count()
+        has_material_count = SimpleModel.ext_fields_manager.filter(
+            material__have=True).count()
 
         self.assertEqual(has_race_count, 4)
         self.assertEqual(has_gender_count, 2)
@@ -164,10 +234,14 @@ class ExtFieldTestCase(TestCase):
     def test_have_option_in_selected_lang(self):
 
         translation.activate('pt-br')
-        has_race_count = SimpleModel.ext_fields_manager.filter(race__have=True).count()
-        has_gender_count = SimpleModel.ext_fields_manager.filter(gender__have=True).count()
-        has_color_count = SimpleModel.ext_fields_manager.filter(color__have=True).count()
-        has_material_count = SimpleModel.ext_fields_manager.filter(material__have=True).count()
+        has_race_count = SimpleModel.ext_fields_manager.filter(
+            race__have=True).count()
+        has_gender_count = SimpleModel.ext_fields_manager.filter(
+            gender__have=True).count()
+        has_color_count = SimpleModel.ext_fields_manager.filter(
+            color__have=True).count()
+        has_material_count = SimpleModel.ext_fields_manager.filter(
+            material__have=True).count()
 
         self.assertEqual(has_race_count, 4)
         self.assertEqual(has_gender_count, 2)
@@ -177,10 +251,14 @@ class ExtFieldTestCase(TestCase):
     def test_have_option_in_fallback_lang(self):
 
         translation.activate('es-es')
-        has_race_count = SimpleModel.ext_fields_manager.filter(race__have=True).count()
-        has_gender_count = SimpleModel.ext_fields_manager.filter(gender__have=True).count()
-        has_color_count = SimpleModel.ext_fields_manager.filter(color__have=True).count()
-        has_material_count = SimpleModel.ext_fields_manager.filter(material__have=True).count()
+        has_race_count = SimpleModel.ext_fields_manager.filter(
+            race__have=True).count()
+        has_gender_count = SimpleModel.ext_fields_manager.filter(
+            gender__have=True).count()
+        has_color_count = SimpleModel.ext_fields_manager.filter(
+            color__have=True).count()
+        has_material_count = SimpleModel.ext_fields_manager.filter(
+            material__have=True).count()
 
         self.assertEqual(has_race_count, 4)
         self.assertEqual(has_gender_count, 2)
@@ -190,10 +268,14 @@ class ExtFieldTestCase(TestCase):
     def test_other_field_lookups_default_language(self):
 
         translation.activate(settings.LANGUAGE_CODE)
-        group_1 = SimpleModel.ext_fields_manager.filter(color__startswith='Go').values('name')
-        group_2 = SimpleModel.ext_fields_manager.filter(material__endswith='n').values('name')
-        group_3 = SimpleModel.ext_fields_manager.filter(material__contains='ee').values('name')
-        group_4 = SimpleModel.ext_fields_manager.filter(material__icontains='Ee').values('name')
+        group_1 = SimpleModel.ext_fields_manager.filter(
+            color__startswith='Go').values('name')
+        group_2 = SimpleModel.ext_fields_manager.filter(
+            material__endswith='n').values('name')
+        group_3 = SimpleModel.ext_fields_manager.filter(
+            material__contains='ee').values('name')
+        group_4 = SimpleModel.ext_fields_manager.filter(
+            material__icontains='Ee').values('name')
         group_5 = SimpleModel.ext_fields_manager.filter(
             race__regex='^[A-Za-z]+$'
         ).values('name')
@@ -373,7 +455,7 @@ class ExtFieldTestCase(TestCase):
     def test_manager_exceptions(self):
 
         try:
-            a = SimpleModel.ext_fields_manager.filter(color__startswith=False)
+            SimpleModel.ext_fields_manager.filter(color__startswith=False)
         except Exception, ex:
             self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 function run_test {
-    coverage run --source='ext_fields' runtests.py $1
-    coverage annotate -d "coverage_annotate_$1"
+    coverage run -p --source='ext_fields' runtests.py $1
+    # coverage annotate -d "coverage_annotate_$1"
 }
 
 if [ $# -gt 0 ]; then
@@ -20,4 +20,6 @@ else
     done
 fi
 
+coverage combine
+coverage annotate -d "coverage_annotate"
 coverage report

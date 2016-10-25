@@ -72,10 +72,14 @@ class InternalExFieldsManager(Mapper):
                 query = sub_query if fopt else ~sub_query
             else:
                 if not self.get_value_map(fopt):
-                    raise ExFieldUnableSaveFieldType('Value assigned to query not supported in ' + fname)
+                    raise ExFieldUnableSaveFieldType(
+                        'Value assigned to query not supported in ' + fname
+                    )
                 value_field = self.get_value_field_name(fopt)
                 lookup_value = self.get_field_related(value_field, opt)
-                query = Q((self.get_field_related('field'), fname,)) & Q((lookup_value, fopt,))
+
+                related = self.get_field_related('field')
+                query = Q((related, fname,)) & Q((lookup_value, fopt,))
         return query
 
     def filter(self, queryset=None, **argv):
@@ -101,7 +105,11 @@ class ExFieldsManager(object):
         return InternalExFieldsManager(self.ext_model_class, owner)
 
     def __set__(self, instance, value):
-        raise ExFieldExceptionCannotSet('Cannot set ext_fields_manager property')
+        raise ExFieldExceptionCannotSet(
+            'Cannot set ext_fields_manager property'
+        )
 
     def __del__(self, instance):  # pragma:no cover
-        raise ExFieldExceptionCannotDel('Cannot del ext_fields_manager property')
+        raise ExFieldExceptionCannotDel(
+            'Cannot del ext_fields_manager property'
+        )

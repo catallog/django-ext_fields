@@ -29,16 +29,19 @@ class ExFieldsDescriptors(Mapper):
                 lang = translation.get_language()
                 is_default_lang = False
                 if lang and hasattr(settings, 'LANGUAGE_CODE'):
-                    is_default_lang = lang.lower() == settings.LANGUAGE_CODE.lower()
+                    lang_code = settings.LANGUAGE_CODE.lower()
+                    is_default_lang = lang.lower() == lang_code
 
                 if FALLBACK_TRANSLATE and not is_default_lang:
-                    res = self.model_class.objects.filter(fk=instance.pk).filter(
+                    res = self.model_class.objects.filter(
+                        fk=instance.pk
+                    ).filter(
                         Q(lang=lang) | Q(lang=settings.LANGUAGE_CODE)
                     ).all()
                     res = sorted(res, lambda a, b: 0 if a == b else -1 if a == settings.LANGUAGE_CODE else 1, lambda x: x.lang)
-
                 else:
-                    res = self.model_class.objects.filter(fk=instance.pk, lang=lang).all()
+                    res = self.model_class.objects.filter(
+                        fk=instance.pk, lang=lang).all()
             else:
                 res = self.model_class.objects.filter(fk=instance.pk).all()
 
@@ -49,12 +52,15 @@ class ExFieldsDescriptors(Mapper):
     def __set__(self, instance, value):
         if (type(value) is tuple):
             if len(value) is not 2:
-                raise ExFieldInvalidTypeSet('on setting ext_fields: Invalid lenght'
-                                            ' for tuple, len(value) must be 2, first item with key, second'
-                                            ' the holder value')
+                raise ExFieldInvalidTypeSet(
+                    'on setting ext_fields: Invalid lenght'
+                    ' for tuple, len(value) must be 2,'
+                    ' first item with key, second'
+                    ' the holder value')
             if type(value[0]) not in (str, unicode,):
-                raise ExFieldInvalidTypeSet('on setting ext_fields, first field on '
-                                            'property tuple must be str with field name')
+                raise ExFieldInvalidTypeSet(
+                    'on setting ext_fields, first field on '
+                    'property tuple must be str with field name')
 
             if value[1] is None:
                 return self._delete_field(instance, value[0])
@@ -65,8 +71,9 @@ class ExFieldsDescriptors(Mapper):
         elif type(value) is dict:
             self.__set__(instance, value.items())
         else:
-            raise ExFieldInvalidTypeSet('To set a extended field, give a tuple with key'
-                                        ' value, a list with KV tuples OR a dict')
+            raise ExFieldInvalidTypeSet(
+                'To set a extended field, give a tuple with key'
+                ' value, a list with KV tuples OR a dict')
         return value
 
     def _delete_field(self, instance, field):
@@ -89,8 +96,10 @@ class ExFieldsDescriptors(Mapper):
 
             self.model_class.objects.update_or_create(**params)
         else:
-            raise ExFieldUnableSaveFieldType('for now only str, int, float and datetime'
-                                             'can be used as extended fields')
+            raise ExFieldUnableSaveFieldType(
+                'for now only str, int, float and datetime'
+                'can be used as extended fields'
+            )
 
     def __delete__(self, instance):  # pragma:no cover
         if '__extFielCache' in instance.__dict__:
