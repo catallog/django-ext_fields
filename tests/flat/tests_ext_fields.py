@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.test import TestCase
 
 from .models import SimpleModel
@@ -268,14 +266,14 @@ class ExtFieldTestCase(TestCase):
         email = emails.first().value
 
         self.assertEqual(email, 'email@ext.com')
-        self.assertTrue(type(email) in [unicode, str])
+        self.assertTrue(type(email) in [str])
 
     def test_implicit_type_cast(self):
 
         mod = SimpleModel.objects.get(email='email@model.com')
 
         mod.ext_fields = {'area': 'outside hall'}
-        self.assertTrue(type(mod.ext_fields.get('area')) in [str, unicode])
+        self.assertTrue(type(mod.ext_fields.get('area')) in [str])
 
         mod.ext_fields = {'area': 34}
         self.assertEqual(type(mod.ext_fields.get('area')), int)
@@ -284,4 +282,4 @@ class ExtFieldTestCase(TestCase):
         self.assertEqual(type(mod.ext_fields.get('area')), float)
 
         mod.ext_fields = {'date': '2015-10-28T11:23:47.311Z'}
-        self.assertTrue(type(mod.ext_fields.get('date')) in [str, unicode])
+        self.assertTrue(type(mod.ext_fields.get('date')) in [str])

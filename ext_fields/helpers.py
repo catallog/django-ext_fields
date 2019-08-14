@@ -2,16 +2,13 @@
 # @Date    : 2015-12-14 09:34:48
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
-
-from __future__ import unicode_literals
-
 from django.db import models
 from ext_fields import constants
 
 
 def create_ex_fields_parent(cls):
     class ExtendedFieldsParent(models.Model):
-        fk = models.ForeignKey(cls, null=False)
+        fk = models.ForeignKey(cls, null=False, on_delete=models.deletion.CASCADE)
         field = models.CharField(max_length=128, null=False)
         lang = models.CharField(max_length=5, null=True, blank=True, default=None)
         value_str = models.TextField(null=True, blank=True, default=None)

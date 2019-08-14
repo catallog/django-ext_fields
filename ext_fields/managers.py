@@ -2,9 +2,6 @@
 # @Date    : 2015-12-14 09:08:52
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
-
-from __future__ import unicode_literals
-
 from django.db.models import Q
 from ext_fields.exceptions import ExFieldExceptionCannotSet
 from ext_fields.exceptions import ExFieldExceptionCannotDel
@@ -93,7 +90,7 @@ class InternalExFieldsManager(Mapper):
     def distinct_fields(self, queryset=None):
         queryset = queryset or self._get_new_queryset()
         fields = queryset.values(self.get_field_related('field')).distinct()
-        return map(lambda a: a.values()[0], fields)
+        return list(map(lambda a: list(a.values())[0], fields))
 
 
 class ExFieldsManager(object):

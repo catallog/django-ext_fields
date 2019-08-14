@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2016-01-26 18:26
 # @Author  : Basask (basask@gmail.com)
-
-from __future__ import unicode_literals
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from ext_fields.constants import VALUE_PREFIX, TYPEMAP
+
+from functools import reduce
 
 
 DETECT_DATE = getattr(settings, "EXTFIELDS_DETECT_DATE", False)
@@ -25,7 +25,7 @@ class Mapper(object):
     @staticmethod
     def get_value_map(value):
         value_type = type(value)
-        if DETECT_DATE and value_type in [str, unicode]:
+        if DETECT_DATE and value_type in [str]:
             if parse_datetime(value):
                 return 'date'
         for k, v in TYPEMAP.items():

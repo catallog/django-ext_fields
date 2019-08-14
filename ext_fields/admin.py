@@ -2,9 +2,6 @@
 # @Date    : 2016-10-24 10:00:00
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
-
-from __future__ import unicode_literals
-
 from django import forms
 from django.contrib import admin
 

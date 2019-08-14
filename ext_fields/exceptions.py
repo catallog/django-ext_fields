@@ -3,8 +3,6 @@
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
 
-from __future__ import unicode_literals
-
 
 class ExFieldException(Exception):
     pass

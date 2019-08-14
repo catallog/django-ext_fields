@@ -2,8 +2,6 @@
 # @Date    : 2015-12-14 09:51:16
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
-
-from __future__ import unicode_literals
 from django.conf import settings
 from django.db.models import Q
 from django.utils import translation
@@ -57,7 +55,7 @@ class ExFieldsDescriptors(Mapper):
                     ' for tuple, len(value) must be 2,'
                     ' first item with key, second'
                     ' the holder value')
-            if type(value[0]) not in (str, unicode,):
+            if type(value[0]) not in (str,):
                 raise ExFieldInvalidTypeSet(
                     'on setting ext_fields, first field on '
                     'property tuple must be str with field name')
@@ -69,7 +67,7 @@ class ExFieldsDescriptors(Mapper):
         elif type(value) is list:
             [self.__set__(instance, v) for v in value]
         elif type(value) is dict:
-            self.__set__(instance, value.items())
+            self.__set__(instance, list(value.items()))
         else:
             raise ExFieldInvalidTypeSet(
                 'To set a extended field, give a tuple with key'
