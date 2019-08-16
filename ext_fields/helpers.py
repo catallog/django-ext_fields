@@ -3,6 +3,8 @@
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
 from django.db import models
+from functools import reduce
+
 from ext_fields import constants
 
 

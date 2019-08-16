@@ -18,11 +18,13 @@ class ExtFieldsForm(forms.ModelForm):
         super(ExtFieldsForm, self).__init__(*args, **kwargs)
 
         try:
-            instance = kwargs['instance']
-            self.initial['value'] = instance.value
-            self.initial.update()
+            instance = kwargs.get('instance', None)
+            if instance:
+                self.initial['value'] = instance.value
+                self.initial.update()
         except:
-            pass
+            import traceback
+            traceback.print_exc()
 
     def save(self, *args, **kwargs):
         a = super(ExtFieldsForm, self).save(*args, **kwargs)
