@@ -2,3 +2,4 @@
 django_ext_fields.egg-info/
 coverage_*
 .coverage
+dist/*

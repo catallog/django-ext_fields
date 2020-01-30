@@ -2,10 +2,10 @@
 # @Date    : 2015-12-14 09:52:12
 # @Author  : Rafael Fernandes (basask@collabo.com.br)
 # @Link    : http://www.collabo.com.br/
-from .descriptors import ExFieldsDescriptors
-from .helpers import as_dict
-from .helpers import create_ex_fields_parent
-from .managers import ExFieldsManager
+from ext_fields.descriptors import ExFieldsDescriptors
+from ext_fields.helpers import as_dict
+from ext_fields.helpers import create_ex_fields_parent
+from ext_fields.managers import ExFieldsManager
 
 
 class EmptyMeta:

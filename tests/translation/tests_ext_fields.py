@@ -278,7 +278,7 @@ class ExtFieldTestCase(TestCase):
             race__regex='^[A-Za-z]+$'
         ).values('name')
 
-        extvals = lambda n, s: map(lambda a: a.get(n), s)
+        extvals = lambda n, s: list(map(lambda a: a.get(n), s))
 
         self.assertTrue('C3po' in extvals('name', group_1))
         self.assertTrue('Anakin' in extvals('name', group_2))
