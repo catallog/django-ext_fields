@@ -432,35 +432,35 @@ class ExtFieldTestCase(TestCase):
 
         try:
             mod.ext_fields = ('test', 'test_val', 'out of bounds',)
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldInvalidTypeSet)
 
         try:
             mod.ext_fields = (1, 'Incompatible key',)
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldInvalidTypeSet)
 
         try:
             mod.ext_fields = 5.67
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldInvalidTypeSet)
 
         try:
             mod.ext_fields = ('key', object(),)
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
 
     def test_manager_exceptions(self):
 
         try:
             SimpleModel.ext_fields_manager.filter(color__startswith=False)
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldUnableSaveFieldType)
 
         mod = SimpleModel.objects.get(name='Boba')
         try:
             mod.ext_fields_manager = object()
-        except Exception, ex:
+        except Exception as ex:
             self.assertIsInstance(ex, ExFieldExceptionCannotSet)
 
     def test_exclusion(self):

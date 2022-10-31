@@ -17,7 +17,7 @@ INSTALLED_APPS = [
 
 if 'TRAVIS' in os.environ:
     database = os.environ.get('TEST_DATABASE')
-    print "Testing in:", database
+    print("Testing in:", database)
     if database == 'postgres':
         DATABASES = {
             'default': {

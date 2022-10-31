@@ -36,7 +36,8 @@ class ExFieldsDescriptors(Mapper):
                     ).filter(
                         Q(lang=lang) | Q(lang=settings.LANGUAGE_CODE)
                     ).all()
-                    res = sorted(res, lambda a, b: 0 if a == b else -1 if a == settings.LANGUAGE_CODE else 1, lambda x: x.lang)
+                    # res = sorted(res, key=lambda a, b: 0 if a == b else -1 if a == settings.LANGUAGE_CODE else 1, lambda x: x.lang)
+                    # res = sorted(res)
                 else:
                     res = self.model_class.objects.filter(
                         fk=instance.pk, lang=lang).all()
@@ -49,7 +50,7 @@ class ExFieldsDescriptors(Mapper):
 
     def __set__(self, instance, value):
         if (type(value) is tuple):
-            if len(value) is not 2:
+            if len(value) != 2:
                 raise ExFieldInvalidTypeSet(
                     'on setting ext_fields: Invalid lenght'
                     ' for tuple, len(value) must be 2,'
